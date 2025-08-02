@@ -3,176 +3,176 @@
 // 技能数据库
 const skillDatabase = {
     // 攻击类技能
-    '烈火斩': {
-        name: '烈火斩',
+    '九天焚炎诀': {
+        name: '九天焚炎诀',
         type: 'attack',
-        description: '释放烈火之力，造成额外火焰伤害',
+        description: '引动九天真火，焚尽万物',
         triggerChance: 0.15,
         effects: {
             damageMultiplier: 1.5,
             elementType: 'fire'
         },
-        message: '你释放烈火斩，火焰包围了敌人！'
+        message: '九天真火降世，焚尽一切！'
     },
-    '雷霆一击': {
-        name: '雷霆一击',
+    '紫霄神雷术': {
+        name: '紫霄神雷术',
         type: 'attack',
-        description: '召唤雷电之力，有概率麻痹敌人',
+        description: '召唤紫霄神雷，雷威震慑敌胆',
         triggerChance: 0.12,
         effects: {
             damageMultiplier: 1.4,
             stunChance: 0.3,
             elementType: 'thunder'
         },
-        message: '雷霆从天而降，电光闪烁！'
+        message: '紫霄神雷轰鸣，雷光耀世！'
     },
-    '寒冰刺': {
-        name: '寒冰刺',
+    '玄冰千里冻': {
+        name: '玄冰千里冻',
         type: 'attack',
-        description: '凝聚寒冰之力，减缓敌人速度',
+        description: '施展玄冰奥义，冰封万里',
         triggerChance: 0.18,
         effects: {
             damageMultiplier: 1.3,
             slowEffect: 0.5,
             elementType: 'ice'
         },
-        message: '寒冰凝聚成刺，刺骨的寒意袭来！'
+        message: '玄冰之力席卷，万物凝结！'
     },
-    '风刃斩': {
-        name: '风刃斩',
+    '御风无影斩': {
+        name: '御风无影斩',
         type: 'attack',
-        description: '操控风之力量，提高攻击速度',
+        description: '御风而行，剑气如影随形',
         triggerChance: 0.20,
         effects: {
             damageMultiplier: 1.2,
             speedBoost: 1.5,
             elementType: 'wind'
         },
-        message: '风刃呼啸而过，快如闪电！'
+        message: '御风而行，剑影无踪！'
     },
-    '土石拳': {
-        name: '土石拳',
+    '撼山震地拳': {
+        name: '撼山震地拳',
         type: 'attack',
-        description: '凝聚大地之力，造成重击伤害',
+        description: '汇聚大地精华，拳威撼山岳',
         triggerChance: 0.14,
         effects: {
             damageMultiplier: 1.6,
             armorPierce: 0.3,
             elementType: 'earth'
         },
-        message: '大地之力汇聚于拳，重击如山！'
+        message: '大地精华汇聚，拳威撼山岳！'
     },
     
     // 防御类技能
-    '金刚护体': {
-        name: '金刚护体',
+    '不灭金身诀': {
+        name: '不灭金身诀',
         type: 'defense',
-        description: '激活护体真气，大幅减少受到的伤害',
+        description: '修炼不灭金身，万法不侵',
         triggerChance: 0.10,
         effects: {
             damageReduction: 0.5,
             duration: 3
         },
-        message: '金光护体，真气环绕！'
+        message: '金身显现，万法不侵！'
     },
-    '灵盾术': {
-        name: '灵盾术',
+    '太极玄天盾': {
+        name: '太极玄天盾',
         type: 'defense',
-        description: '凝聚灵力护盾，完全抵挡一次攻击',
+        description: '凝聚太极玄力，化解一切攻击',
         triggerChance: 0.08,
         effects: {
             blockNextAttack: true
         },
-        message: '灵力凝聚成盾，光芒闪耀！'
+        message: '太极玄盾现，阴阳护体！'
     },
-    '反震护甲': {
-        name: '反震护甲',
+    '天罡反噬阵': {
+        name: '天罡反噬阵',
         type: 'defense',
-        description: '受到攻击时反弹部分伤害给敌人',
+        description: '布下天罡大阵，反噬敌人攻击',
         triggerChance: 0.12,
         effects: {
             reflectDamage: 0.3,
             damageReduction: 0.2
         },
-        message: '护甲闪烁，反震之力激活！'
+        message: '天罡大阵启动，反噬之力涌现！'
     },
     
     // 恢复类技能
-    '回春术': {
-        name: '回春术',
+    '太乙回生术': {
+        name: '太乙回生术',
         type: 'heal',
-        description: '快速恢复生命值',
+        description: '运转太乙玄功，起死回生',
         triggerChance: 0.15,
         effects: {
             healAmount: 0.2,
             healType: 'percentage'
         },
-        message: '生命之力涌动，伤势快速愈合！'
+        message: '太乙玄光普照，生机重现！'
     },
-    '真气回流': {
-        name: '真气回流',
+    '天地灵气诀': {
+        name: '天地灵气诀',
         type: 'heal',
-        description: '调动体内真气，持续恢复生命',
+        description: '吸纳天地灵气，滋养肉身',
         triggerChance: 0.10,
         effects: {
             healOverTime: 5,
             duration: 3
         },
-        message: '真气在体内循环，生机勃勃！'
+        message: '天地灵气汇聚，生机盎然！'
     },
     
     // 辅助类技能
-    '洞察术': {
-        name: '洞察术',
+    '天眼通明诀': {
+        name: '天眼通明诀',
         type: 'utility',
-        description: '看破敌人弱点，提高暴击率',
+        description: '开启天眼，洞察万物本源',
         triggerChance: 0.12,
         effects: {
             critChanceBoost: 0.3,
             duration: 5
         },
-        message: '慧眼如炬，敌人弱点一览无余！'
+        message: '天眼开启，万物本源尽显！'
     },
-    '疾风步': {
-        name: '疾风步',
+    '凌波微步': {
+        name: '凌波微步',
         type: 'utility',
-        description: '提高闪避能力和移动速度',
+        description: '身法如仙，踏波而行',
         triggerChance: 0.15,
         effects: {
             dodgeBoost: 0.4,
             speedBoost: 1.3,
             duration: 4
         },
-        message: '身如疾风，飘忽不定！'
+        message: '凌波微步现，身如游龙！'
     },
-    '聚气凝神': {
-        name: '聚气凝神',
+    '万法归一诀': {
+        name: '万法归一诀',
         type: 'utility',
-        description: '凝聚精神力，提升所有属性',
+        description: '万法归一，道法自然',
         triggerChance: 0.08,
         effects: {
             allStatsBoost: 0.2,
             duration: 3
         },
-        message: '精神高度集中，实力全面提升！'
+        message: '万法归一，道法自然！'
     },
     
     // 特殊技能
-    '血祭之术': {
-        name: '血祭之术',
+    '燃血魔功': {
+        name: '燃血魔功',
         type: 'special',
-        description: '消耗生命值换取强大攻击力',
+        description: '燃烧精血，换取无上神威',
         triggerChance: 0.05,
         effects: {
             healthCost: 0.15,
             damageMultiplier: 2.5
         },
-        message: '以血为祭，换取毁灭之力！'
+        message: '精血燃烧，魔威滔天！'
     },
-    '涅槃重生': {
-        name: '涅槃重生',
+    '凤凰涅槃诀': {
+        name: '凤凰涅槃诀',
         type: 'special',
-        description: '濒死时触发，完全恢复生命值',
+        description: '凤凰涅槃，浴火重生',
         triggerChance: 0.03,
         effects: {
             revive: true,
@@ -180,27 +180,27 @@ const skillDatabase = {
         },
         message: '凤凰涅槃，浴火重生！'
     },
-    '时空扭曲': {
-        name: '时空扭曲',
+    '乾坤大挪移': {
+        name: '乾坤大挪移',
         type: 'special',
-        description: '扭曲时空，获得额外行动机会',
+        description: '挪移乾坤，逆转时空',
         triggerChance: 0.04,
         effects: {
             extraTurn: true
         },
-        message: '时空扭曲，时间为你停滞！'
+        message: '乾坤挪移，时空逆转！'
     }
 };
 
 // 按境界分类的技能池
 const skillPoolsByRealm = {
-    0: ['烈火斩', '回春术', '疾风步'], // 练气期
-    1: ['雷霆一击', '金刚护体', '洞察术'], // 筑基期
-    2: ['寒冰刺', '灵盾术', '真气回流'], // 金丹期
-    3: ['风刃斩', '反震护甲', '聚气凝神'], // 元婴期
-    4: ['土石拳', '血祭之术'], // 化神期
-    5: ['涅槃重生'], // 炼虚期
-    6: ['时空扭曲'], // 合体期
+    0: ['九天焚炎诀', '太乙回生术', '凌波微步'], // 练气期
+    1: ['紫霄神雷术', '不灭金身诀', '天眼通明诀'], // 筑基期
+    2: ['玄冰千里冻', '太极玄天盾', '天地灵气诀'], // 金丹期
+    3: ['御风无影斩', '天罡反噬阵', '万法归一诀'], // 元婴期
+    4: ['撼山震地拳', '燃血魔功'], // 化神期
+    5: ['凤凰涅槃诀'], // 炼虚期
+    6: ['乾坤大挪移'], // 合体期
     7: [], // 大乘期
     8: [] // 渡劫期
 };

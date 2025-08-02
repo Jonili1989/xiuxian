@@ -1,5 +1,6 @@
 // 妖兽类型定义
 const monsterDatabase = {
+    // 基础妖兽
     1: { 
         name: '狐妖', 
         health: 40, 
@@ -8,7 +9,8 @@ const monsterDatabase = {
         speed: 8, 
         skills: ['魅惑', '连击'], 
         dropRate: 0.3, 
-        dropItem: '狐尾' 
+        dropItem: '狐尾',
+        tier: 'basic'
     },
     2: { 
         name: '狼妖', 
@@ -18,7 +20,8 @@ const monsterDatabase = {
         speed: 6, 
         skills: ['撕咬', '狂怒'], 
         dropRate: 0.4, 
-        dropItem: '狼牙' 
+        dropItem: '狼牙',
+        tier: 'basic'
     },
     3: { 
         name: '熊罴', 
@@ -28,7 +31,8 @@ const monsterDatabase = {
         speed: 3, 
         skills: ['拍击', '吼叫'], 
         dropRate: 0.2, 
-        dropItem: '熊胆' 
+        dropItem: '熊胆',
+        tier: 'basic'
     },
     4: { 
         name: '蛇精', 
@@ -38,7 +42,8 @@ const monsterDatabase = {
         speed: 7, 
         skills: ['毒牙', '缠绕'], 
         dropRate: 0.5, 
-        dropItem: '蛇胆' 
+        dropItem: '蛇胆',
+        tier: 'basic'
     },
     5: { 
         name: '虎妖', 
@@ -48,7 +53,65 @@ const monsterDatabase = {
         speed: 5, 
         skills: ['猛扑', '嗜血'], 
         dropRate: 0.3, 
-        dropItem: '虎骨' 
+        dropItem: '虎骨',
+        tier: 'basic'
+    },
+    
+    // 进阶妖兽（属性增强版本）
+    101: { 
+        name: '九尾狐妖', 
+        health: 55, 
+        attack: 8, 
+        defense: 4, 
+        speed: 10, 
+        skills: ['魅惑', '连击'], 
+        dropRate: 0.4, 
+        dropItem: '九尾狐尾',
+        tier: 'advanced'
+    },
+    102: { 
+        name: '银月狼王', 
+        health: 70, 
+        attack: 11, 
+        defense: 6, 
+        speed: 8, 
+        skills: ['撕咬', '狂怒'], 
+        dropRate: 0.5, 
+        dropItem: '银月狼牙',
+        tier: 'advanced'
+    },
+    103: { 
+        name: '铁甲熊王', 
+        health: 95, 
+        attack: 14, 
+        defense: 9, 
+        speed: 4, 
+        skills: ['拍击', '吼叫'], 
+        dropRate: 0.3, 
+        dropItem: '铁甲熊胆',
+        tier: 'advanced'
+    },
+    104: { 
+        name: '碧鳞蛇皇', 
+        health: 50, 
+        attack: 10, 
+        defense: 3, 
+        speed: 9, 
+        skills: ['毒牙', '缠绕'], 
+        dropRate: 0.6, 
+        dropItem: '碧鳞蛇胆',
+        tier: 'advanced'
+    },
+    105: { 
+        name: '白虎妖王', 
+        health: 85, 
+        attack: 13, 
+        defense: 7, 
+        speed: 7, 
+        skills: ['猛扑', '嗜血'], 
+        dropRate: 0.4, 
+        dropItem: '白虎王骨',
+        tier: 'advanced'
     }
 };
 

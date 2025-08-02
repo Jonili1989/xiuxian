@@ -256,7 +256,8 @@ const monsterDatabase = {
         speed: 7,
         skill: "魅惑",
         dropRate: 0.7,
-        dropItem: "狐尾"
+        dropItem: "狐尾",
+        tier: "basic"
     },
     wolf: {
         name: "狼妖",
@@ -266,7 +267,8 @@ const monsterDatabase = {
         speed: 8,
         skill: "连击",
         dropRate: 0.6,
-        dropItem: "狼牙"
+        dropItem: "狼牙",
+        tier: "basic"
     },
     bear: {
         name: "熊罴",
@@ -276,7 +278,8 @@ const monsterDatabase = {
         speed: 4,
         skill: "拍击",
         dropRate: 0.5,
-        dropItem: "熊胆"
+        dropItem: "熊胆",
+        tier: "advanced"
     },
     snake: {
         name: "蛇精",
@@ -286,7 +289,8 @@ const monsterDatabase = {
         speed: 6,
         skill: "毒牙",
         dropRate: 0.65,
-        dropItem: "蛇胆"
+        dropItem: "蛇胆",
+        tier: "basic"
     },
     tiger: {
         name: "虎妖",
@@ -296,7 +300,8 @@ const monsterDatabase = {
         speed: 7,
         skill: "猛扑",
         dropRate: 0.4,
-        dropItem: "虎骨"
+        dropItem: "虎骨",
+        tier: "advanced"
     }
 };
 
@@ -804,7 +809,8 @@ const explorationSettings = {
 const restSettings = {
     minHealthRecovery: 15, // 最小恢复生命值
     maxHealthRecovery: 25, // 最大恢复生命值
-    luckImpactOnRecovery: 0.1 // 每点幸运值增加的恢复量系数
+    luckImpactOnRecovery: 0.1, // 每点幸运值增加的恢复量系数
+    actionPointCost: 1 // 休息消耗的行动力
 };
 
 // 将所有数据暴露到全局作用域

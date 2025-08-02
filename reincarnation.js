@@ -169,6 +169,18 @@ class ReincarnationSystem {
         // 保留未使用的轮回点
         this.totalReincarnationPoints = this.currentReincarnationPoints;
         
+        // 处理技能保留逻辑
+        let retainedSkill = null;
+        if (gameState.skills && gameState.skills.length > 0) {
+            // 25%概率保留一个已有技能
+            if (Math.random() < 0.25) {
+                const randomIndex = Math.floor(Math.random() * gameState.skills.length);
+                retainedSkill = gameState.skills[randomIndex];
+                const skillName = window.skillDatabase[retainedSkill]?.name || retainedSkill;
+                addLog(`【轮回保留】你保留了技能：${skillName}`, 'positive');
+            }
+        }
+        
         // 重置游戏状态
         gameState.health = gameState.maxHealth;
         gameState.mood = gameState.maxMood; // 重置心情值
@@ -177,6 +189,13 @@ class ReincarnationSystem {
         gameState.cultivation = 0;
         gameState.realm = 0;
         gameState.realmStartDay = 1; // 重置境界开始天数
+        
+        // 重置技能，但保留可能的技能
+        if (retainedSkill) {
+            gameState.skills = [retainedSkill];
+        } else {
+            gameState.skills = [];
+        }
         
         // 隐藏轮回界面
         document.getElementById('reincarnation-ui').remove();

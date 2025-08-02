@@ -150,7 +150,7 @@ function updateUI() {
     const actionPercent = (gameState.actionPoints / gameState.maxActionPoints) * 100;
     elements.actionBar.style.width = `${actionPercent}%`;
 
-    const cultivationPercent = (gameState.cultivation / currentRealm.cap) * 100;
+    const cultivationPercent = Math.min((gameState.cultivation / currentRealm.cap) * 100, 100);
     elements.cultivationBar.style.width = `${cultivationPercent}%`;
 
     const moodPercent = (gameState.mood / gameState.maxMood) * 100;
@@ -946,10 +946,8 @@ function handleCombat() {
     // 设置战斗状态
     isInCombat = true;
     
-    // 随机选择一个妖兽
-    const monsterKeys = Object.keys(window.monsterDatabase);
-    const randomMonsterKey = monsterKeys[Math.floor(Math.random() * monsterKeys.length)];
-    const monster = window.monsterDatabase[randomMonsterKey];
+    // 根据玩家境界选择妖兽
+    const monster = selectMonsterByRealm();
     
     // 创建妖兽实例
     const monsterInstance = {
@@ -957,13 +955,79 @@ function handleCombat() {
         currentHealth: monster.health
     };
     
-    addLog(`你遇到了一只${monster.name}！`, 'negative');
+    const tierLevel = `（${monster.level}级）`;
+    addLog(`你遇到了一只${monster.name}${tierLevel}！`, 'negative');
     
     // 更新UI以禁用按钮
     updateUI();
     
     // 开始战斗回合
     startCombatRound(monsterInstance);
+}
+
+// 根据境界选择妖兽
+function selectMonsterByRealm() {
+    const playerRealm = gameState.realm;
+    
+    // 获取基础妖兽和进阶妖兽
+    const basicMonsters = Object.values(window.monsterDatabase).filter(m => m.tier === 'basic');
+    const advancedMonsters = Object.values(window.monsterDatabase).filter(m => m.tier === 'advanced');
+    
+    // 根据境界确定妖兽等级和概率
+    let monsterLevel = 1;
+    let selectedMonster;
+    
+    if (playerRealm >= 2) {
+        // 从金丹期开始出现3级妖兽
+        const level3Chance = Math.min(0.1 * (playerRealm - 1), 0.6); // 最高60%概率
+        const level2Chance = Math.min(0.15 * playerRealm, 0.4); // 2级妖兽概率降低
+        const level1Chance = 1 - level3Chance - level2Chance;
+        
+        const rand = Math.random();
+        if (rand < level3Chance) {
+            monsterLevel = 3;
+            selectedMonster = advancedMonsters[Math.floor(Math.random() * advancedMonsters.length)];
+        } else if (rand < level3Chance + level2Chance) {
+            monsterLevel = 2;
+            selectedMonster = advancedMonsters[Math.floor(Math.random() * advancedMonsters.length)];
+        } else {
+            monsterLevel = 1;
+            selectedMonster = basicMonsters[Math.floor(Math.random() * basicMonsters.length)];
+        }
+    } else if (playerRealm >= 1) {
+        // 筑基期：1级和2级妖兽
+        const level2Chance = Math.min(0.15 * playerRealm, 0.5);
+        if (Math.random() < level2Chance && advancedMonsters.length > 0) {
+            monsterLevel = 2;
+            selectedMonster = advancedMonsters[Math.floor(Math.random() * advancedMonsters.length)];
+        } else {
+            monsterLevel = 1;
+            selectedMonster = basicMonsters[Math.floor(Math.random() * basicMonsters.length)];
+        }
+    } else {
+        // 练气期：只有1级妖兽
+        monsterLevel = 1;
+        selectedMonster = basicMonsters[Math.floor(Math.random() * basicMonsters.length)];
+    }
+    
+    // 根据等级增强妖兽属性
+    return enhanceMonsterByLevel(selectedMonster, monsterLevel);
+}
+
+// 根据等级增强妖兽属性
+function enhanceMonsterByLevel(monster, level) {
+    const enhancedMonster = { ...monster };
+    
+    // 基础属性增强倍数
+    const levelMultiplier = 1 + (level - 1) * 0.4; // 每级增加40%属性
+    
+    enhancedMonster.health = Math.floor(monster.health * levelMultiplier);
+    enhancedMonster.attack = Math.floor(monster.attack * levelMultiplier);
+    enhancedMonster.defense = Math.floor(monster.defense * levelMultiplier);
+    enhancedMonster.speed = Math.floor(monster.speed * levelMultiplier);
+    enhancedMonster.level = level;
+    
+    return enhancedMonster;
 }
 
 // 战斗回合
