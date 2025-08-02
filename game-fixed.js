@@ -200,13 +200,43 @@ function addLog(message, type = 'neutral') {
     const logEntry = document.createElement('div');
     logEntry.className = `log-entry ${type}`;
     
+    // 检查是否为心魔相关的日志
+    const isHeartDemonLog = message.includes('心魔') || 
+                           (message.includes('期心魔') && (message.includes('出现了') || message.includes('显现'))) ||
+                           message.includes('内心的心魔') || message.includes('心魔战斗') ||
+                           message.includes('心魔的力量') || message.includes('战胜了内心的心魔');
+    
     // 检查是否为战斗相关的日志
     const isCombatLog = message.includes('攻击') || message.includes('伤害') || message.includes('战斗') || 
                        message.includes('击败') || message.includes('心魔') || message.includes('妖兽') || 
                        message.includes('闪避') || message.includes('暴击') || message.includes('技能') ||
                        message.includes('逃跑') || message.includes('胜利') || message.includes('失败');
     
-    if (isCombatLog) {
+    if (isHeartDemonLog) {
+        logEntry.classList.add('heart-demon-log');
+        
+        // 添加心魔头像
+        const avatarImg = document.createElement('img');
+        avatarImg.src = './heart-demon-avatar.svg';
+        avatarImg.className = 'heart-demon-avatar';
+        avatarImg.style.cssText = `
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+            vertical-align: middle;
+            border-radius: 50%;
+            background: rgba(139, 0, 0, 0.1);
+            padding: 2px;
+        `;
+        avatarImg.alt = '心魔';
+        logEntry.appendChild(avatarImg);
+        
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = message;
+        messageSpan.style.fontWeight = 'bold';
+        messageSpan.style.color = '#8B0000';
+        logEntry.appendChild(messageSpan);
+    } else if (isCombatLog) {
         logEntry.classList.add('combat-log');
         // 添加战斗图标
         const icon = document.createElement('span');
@@ -1479,8 +1509,8 @@ function startDungeonCombatRound(enemy, round) {
         <button onclick="dungeonTryToFlee(${JSON.stringify(enemy).replace(/"/g, '&quot;')}, ${round})">逃跑</button>
     `;
     
-    elements.logContainer.appendChild(combatOptions);
-    elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
+    elements.logContainer.insertBefore(combatOptions, elements.logContainer.firstChild);
+    // 新消息在顶部，不需要滚动
 }
 
 function dungeonPlayerAttack(enemy, round) {

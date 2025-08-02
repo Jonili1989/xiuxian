@@ -915,6 +915,64 @@ button:active {
     display: inline-block;
 }
 
+/* 心魔日志样式 */
+.heart-demon-log {
+    background: linear-gradient(135deg, 
+        rgba(139, 0, 0, 0.15) 0%, 
+        rgba(128, 0, 0, 0.1) 50%, 
+        rgba(105, 0, 0, 0.05) 100%);
+    border-left: 4px solid #8B0000;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(139, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.heart-demon-log::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, 
+        transparent 30%, 
+        rgba(139, 0, 0, 0.1) 50%, 
+        transparent 70%);
+    animation: heartDemonGlow 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.heart-demon-log:hover {
+    background: linear-gradient(135deg, 
+        rgba(139, 0, 0, 0.25) 0%, 
+        rgba(128, 0, 0, 0.2) 50%, 
+        rgba(105, 0, 0, 0.15) 100%);
+    transform: translateX(8px);
+    box-shadow: 0 4px 16px rgba(139, 0, 0, 0.3);
+}
+
+.heart-demon-avatar {
+    filter: drop-shadow(0 0 4px rgba(139, 0, 0, 0.5));
+    transition: all 0.3s ease;
+}
+
+.heart-demon-log:hover .heart-demon-avatar {
+    filter: drop-shadow(0 0 8px rgba(139, 0, 0, 0.8));
+    transform: scale(1.1);
+}
+
+@keyframes heartDemonGlow {
+    0%, 100% {
+        opacity: 0.3;
+        transform: translateX(-100%);
+    }
+    50% {
+        opacity: 0.7;
+        transform: translateX(100%);
+    }
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     main {

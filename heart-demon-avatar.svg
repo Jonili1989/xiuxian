@@ -1,0 +1,99 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 渐变定义 -->
+    <radialGradient id="faceGradient" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" style="stop-color:#6b4226;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#4a2c1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d1810;stop-opacity:1" />
+    </radialGradient>
+    
+    <linearGradient id="eyeGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6666;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ff4444;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#cc2222;stop-opacity:1" />
+    </linearGradient>
+    
+    <radialGradient id="hornGradient" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#7a7a7a;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#5a5a5a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3a3a3a;stop-opacity:1" />
+    </radialGradient>
+    
+    <!-- 阴影滤镜 -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="3" stdDeviation="3" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+    
+    <!-- 发光效果 -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 背景圆形 -->
+  <circle cx="100" cy="100" r="95" fill="#2a2a2a" stroke="#666" stroke-width="2" filter="url(#shadow)"/>
+  
+  <!-- 头部轮廓 -->
+  <ellipse cx="100" cy="110" rx="65" ry="75" fill="url(#faceGradient)" filter="url(#shadow)"/>
+  
+  <!-- 左角 -->
+  <path d="M 70 60 Q 65 45 60 35 Q 58 30 62 28 Q 68 32 72 45 Q 75 55 70 60 Z" 
+        fill="url(#hornGradient)" filter="url(#shadow)"/>
+  
+  <!-- 右角 -->
+  <path d="M 130 60 Q 135 45 140 35 Q 142 30 138 28 Q 132 32 128 45 Q 125 55 130 60 Z" 
+        fill="url(#hornGradient)" filter="url(#shadow)"/>
+  
+  <!-- 左眼眶 -->
+  <ellipse cx="85" cy="95" rx="12" ry="8" fill="#000000"/>
+  
+  <!-- 右眼眶 -->
+  <ellipse cx="115" cy="95" rx="12" ry="8" fill="#000000"/>
+  
+  <!-- 左眼 -->
+  <ellipse cx="85" cy="95" rx="8" ry="6" fill="url(#eyeGlow)" filter="url(#glow)"/>
+  
+  <!-- 右眼 -->
+  <ellipse cx="115" cy="95" rx="8" ry="6" fill="url(#eyeGlow)" filter="url(#glow)"/>
+  
+  <!-- 眼中瞳孔 -->
+  <ellipse cx="85" cy="95" rx="3" ry="4" fill="#ffaaaa"/>
+  <ellipse cx="115" cy="95" rx="3" ry="4" fill="#ffaaaa"/>
+  
+  <!-- 鼻子 -->
+  <path d="M 100 105 L 95 115 L 105 115 Z" fill="#3a3a3a" stroke="#666" stroke-width="1"/>
+  
+  <!-- 嘴巴 -->
+  <path d="M 85 130 Q 100 140 115 130 Q 110 135 100 135 Q 90 135 85 130 Z" 
+        fill="#1a1a1a" stroke="#666" stroke-width="2"/>
+  
+  <!-- 獠牙 -->
+  <path d="M 92 130 L 90 140 L 94 135 Z" fill="#ffffff" stroke="#ddd" stroke-width="0.5"/>
+  <path d="M 108 130 L 110 140 L 106 135 Z" fill="#ffffff" stroke="#ddd" stroke-width="0.5"/>
+  
+  <!-- 面部纹路 -->
+  <path d="M 70 85 Q 75 90 70 95" stroke="#888" stroke-width="2" fill="none" opacity="0.8"/>
+  <path d="M 130 85 Q 125 90 130 95" stroke="#888" stroke-width="2" fill="none" opacity="0.8"/>
+  
+  <!-- 额头印记 -->
+  <circle cx="100" cy="75" r="8" fill="none" stroke="#cc4444" stroke-width="2" opacity="0.9"/>
+  <path d="M 95 75 L 105 75 M 100 70 L 100 80" stroke="#cc4444" stroke-width="2" opacity="0.9"/>
+  
+  <!-- 阴影效果 -->
+  <ellipse cx="100" cy="180" rx="60" ry="15" fill="#000000" opacity="0.3"/>
+  
+  <!-- 邪恶气息 -->
+  <path d="M 50 120 Q 60 110 70 120 Q 80 110 90 120" 
+        stroke="#ff6666" stroke-width="2" fill="none" opacity="0.7">
+    <animate attributeName="opacity" values="0.5;0.9;0.5" dur="3s" repeatCount="indefinite"/>
+  </path>
+  
+  <path d="M 110 120 Q 120 110 130 120 Q 140 110 150 120" 
+        stroke="#ff6666" stroke-width="2" fill="none" opacity="0.7">
+    <animate attributeName="opacity" values="0.9;0.5;0.9" dur="3s" repeatCount="indefinite"/>
+  </path>
+</svg>
