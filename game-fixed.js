@@ -1046,8 +1046,15 @@ function selectMonsterByRealm() {
 function enhanceMonsterByLevel(monster, level) {
     const enhancedMonster = { ...monster };
     
-    // 基础属性增强倍数
-    const levelMultiplier = 1 + (level - 1) * 0.4; // 每级增加40%属性
+    // 基础属性增强倍数 - 2级及以上妖兽属性增强更多
+    let levelMultiplier;
+    if (level === 1) {
+        levelMultiplier = 1; // 1级妖兽保持原属性
+    } else if (level === 2) {
+        levelMultiplier = 1.5; // 2级妖兽增加50%属性
+    } else {
+        levelMultiplier = 1.5 + (level - 2) * 0.5; // 3级及以上每级增加50%属性
+    }
     
     enhancedMonster.health = Math.floor(monster.health * levelMultiplier);
     enhancedMonster.attack = Math.floor(monster.attack * levelMultiplier);

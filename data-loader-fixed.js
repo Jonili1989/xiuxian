@@ -821,7 +821,7 @@ const skillDatabase = {
         name: "力劈华山",
         type: "attack",
         description: "强力的攻击技能，造成150%伤害",
-        triggerChance: 0.15,
+        triggerChance: 0.25,
         effect: { damageMultiplier: 1.5 },
         message: "你使出力劈华山，造成了巨大伤害！"
     },
@@ -829,7 +829,7 @@ const skillDatabase = {
         name: "烈焰斩",
         type: "attack",
         description: "火焰攻击，造成额外灼烧伤害",
-        triggerChance: 0.12,
+        triggerChance: 0.25,
         effect: { damageMultiplier: 1.3, burnDamage: 10, burnDuration: 3 },
         message: "你的攻击带着烈焰，敌人被灼烧！"
     },
@@ -837,7 +837,7 @@ const skillDatabase = {
         name: "雷霆一击",
         type: "attack",
         description: "雷电攻击，有几率造成眩晕",
-        triggerChance: 0.10,
+        triggerChance: 0.25,
         effect: { damageMultiplier: 1.4, stunChance: 0.3 },
         message: "雷霆之力汇聚于你的攻击中！"
     },
@@ -845,7 +845,7 @@ const skillDatabase = {
         name: "风刃术",
         type: "attack",
         description: "风属性攻击，提高命中率",
-        triggerChance: 0.18,
+        triggerChance: 0.25,
         effect: { damageMultiplier: 1.2, hitBonus: 0.2 },
         message: "风刃呼啸而过，精准命中敌人！"
     },
@@ -855,7 +855,7 @@ const skillDatabase = {
         name: "铁布衫",
         type: "defense",
         description: "提升防御力，减少受到的伤害",
-        triggerChance: 0.20,
+        triggerChance: 0.25,
         effect: { defenseMultiplier: 1.5, duration: 3 },
         message: "你的皮肤变得坚硬如铁！"
     },
@@ -863,7 +863,7 @@ const skillDatabase = {
         name: "身法精通",
         type: "defense",
         description: "大幅提升闪避几率",
-        triggerChance: 0.15,
+        triggerChance: 0.25,
         effect: { dodgeBonus: 0.3, duration: 2 },
         message: "你的身法变得飘逸如风！"
     },
@@ -873,7 +873,7 @@ const skillDatabase = {
         name: "吸血术",
         type: "recovery",
         description: "攻击时恢复生命值",
-        triggerChance: 0.12,
+        triggerChance: 0.25,
         effect: { lifeStealRatio: 0.4 },
         message: "你吸取了敌人的生命力！"
     },
@@ -881,7 +881,7 @@ const skillDatabase = {
         name: "回春术",
         type: "recovery",
         description: "持续恢复生命值",
-        triggerChance: 0.08,
+        triggerChance: 0.25,
         effect: { healPerTurn: 15, duration: 4 },
         message: "生命之力在你体内流淌！"
     },
@@ -891,7 +891,7 @@ const skillDatabase = {
         name: "狂暴",
         type: "buff",
         description: "提升攻击力但降低防御力",
-        triggerChance: 0.10,
+        triggerChance: 0.25,
         effect: { attackMultiplier: 1.8, defenseMultiplier: 0.7, duration: 3 },
         message: "你进入了狂暴状态！"
     },
@@ -899,7 +899,7 @@ const skillDatabase = {
         name: "专注",
         type: "buff",
         description: "提升暴击几率和暴击伤害",
-        triggerChance: 0.15,
+        triggerChance: 0.25,
         effect: { critChanceBonus: 0.2, critMultiplierBonus: 0.5, duration: 3 },
         message: "你的注意力高度集中！"
     },
@@ -909,7 +909,7 @@ const skillDatabase = {
         name: "反击",
         type: "special",
         description: "受到攻击时有几率反击",
-        triggerChance: 0.12,
+        triggerChance: 0.25,
         effect: { counterChance: 0.4, counterMultiplier: 1.2 },
         message: "你发动了反击！"
     },
@@ -917,7 +917,7 @@ const skillDatabase = {
         name: "连击",
         type: "special",
         description: "有几率进行二次攻击",
-        triggerChance: 0.10,
+        triggerChance: 0.25,
         effect: { extraAttackChance: 0.5, extraAttackMultiplier: 0.8 },
         message: "你发动了连击！"
     }
