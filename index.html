@@ -132,6 +132,27 @@
         .breakthrough-btn:hover {
             background-color: #7b1fa2;
         }
+        .skill-item {
+            background-color: #f0f8ff;
+            border: 1px solid #4caf50;
+            border-radius: 5px;
+            padding: 8px;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        .skill-name {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .skill-description {
+            color: #666;
+            font-size: 0.8em;
+            margin-top: 2px;
+        }
+        .skill-trigger {
+            color: #ff9800;
+            font-size: 0.8em;
+        }
     </style>
 </head>
 <body>
@@ -172,6 +193,15 @@
             </div>
             <div class="stat-item">
                 <div>境界试炼倒计时: <span id="realm-countdown">30</span>天</div>
+            </div>
+        </div>
+        
+        <div class="stats-panel">
+            <h2>技能</h2>
+            <div id="skills-container">
+                <div class="stat-item">
+                    <div>暂无技能</div>
+                </div>
             </div>
         </div>
         

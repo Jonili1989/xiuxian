@@ -5,6 +5,9 @@
 // 游戏状态对象
 let gameState = {};
 
+// 战斗状态变量
+let isInCombat = false;
+
 // 在DOM加载完成后初始化游戏状态
 document.addEventListener('DOMContentLoaded', () => {
     // 确保characterDefaults已加载
@@ -161,13 +164,22 @@ function updateUI() {
         elements.moodBar.style.backgroundColor = '#f44336'; // 红色
     }
 
-    // 根据行动力和心情值禁用/启用按钮
+    // 更新技能显示
+    updateSkillsDisplay();
+    
+    // 根据行动力、心情值和战斗状态禁用/启用按钮
     const noActionPoints = gameState.actionPoints <= 0;
     const lowMood = gameState.mood < 25;
-    elements.meditateBtn.disabled = noActionPoints || lowMood || !gameState.isGameStarted;
-    elements.exploreBtn.disabled = noActionPoints || !gameState.isGameStarted;
-    elements.restBtn.disabled = noActionPoints || !gameState.isGameStarted;
-    elements.endDayBtn.disabled = !gameState.isGameStarted;
+    
+    // 调试信息：显示当前战斗状态
+    if (isInCombat) {
+        console.log('当前处于战斗状态，禁用按钮');
+    }
+    
+    elements.meditateBtn.disabled = noActionPoints || lowMood || !gameState.isGameStarted || isInCombat;
+    elements.exploreBtn.disabled = noActionPoints || !gameState.isGameStarted || isInCombat;
+    elements.restBtn.disabled = noActionPoints || !gameState.isGameStarted || isInCombat;
+    elements.endDayBtn.disabled = !gameState.isGameStarted || isInCombat;
 }
 
 // 添加日志
@@ -205,6 +217,9 @@ function addLog(message, type = 'neutral') {
 function gameOver() {
     addLog('你的生命值耗尽，但死亡并非终点...', 'negative');
     
+    // 重置战斗状态
+    isInCombat = false;
+    
     // 禁用所有游戏按钮
     elements.meditateBtn.disabled = true;
     elements.exploreBtn.disabled = true;
@@ -234,6 +249,32 @@ function showReincarnationButton() {
     // 将按钮添加到游戏操作区域
     const actionsContainer = document.querySelector('.game-controls');
     actionsContainer.appendChild(reincarnationBtn);
+}
+
+// 更新技能显示
+function updateSkillsDisplay() {
+    const skillsContainer = document.getElementById('skills-container');
+    
+    if (!gameState.skills || gameState.skills.length === 0) {
+        skillsContainer.innerHTML = '<div class="stat-item"><div>暂无技能</div></div>';
+        return;
+    }
+    
+    let skillsHTML = '';
+    gameState.skills.forEach(skillId => {
+        const skill = window.skillDatabase[skillId];
+        if (skill) {
+            skillsHTML += `
+                <div class="skill-item">
+                    <div class="skill-name">${skill.name}</div>
+                    <div class="skill-description">${skill.description}</div>
+                    <div class="skill-trigger">触发几率: ${(skill.triggerChance * 100).toFixed(0)}%</div>
+                </div>
+            `;
+        }
+    });
+    
+    skillsContainer.innerHTML = skillsHTML;
 }
 
 // 恢复养伤
@@ -334,9 +375,15 @@ function startBossFight() {
         return;
     }
     
+    // 设置战斗状态
+    isInCombat = true;
+    
     addLog(`\n=== 心魔战斗开始 ===`, 'neutral');
     addLog(`你的状态：生命值 ${gameState.health}/${gameState.maxHealth}，攻击力 ${gameState.attack}，防御力 ${gameState.defense}`, 'neutral');
     addLog(`${currentBoss.name}状态：生命值 ${currentBoss.health}/${currentBoss.maxHealth}`, 'neutral');
+    
+    // 更新UI以禁用按钮
+    updateUI();
     
     // 开始战斗回合
     startBossCombatRound(currentBoss);
@@ -389,7 +436,37 @@ function startBossCombatRound(boss) {
 function playerAttackBoss(boss) {
     const baseDamage = Math.max(1, gameState.attack - boss.defense);
     const variance = baseDamage * 0.2;
-    const damage = Math.floor(baseDamage + (Math.random() * variance * 2 - variance));
+    let damage = Math.floor(baseDamage + (Math.random() * variance * 2 - variance));
+    
+    // 检查技能触发
+    let skillTriggered = false;
+    let skillDamageMultiplier = 1.0;
+    let skillEffects = {};
+    
+    if (gameState.skills && gameState.skills.length > 0) {
+        for (const skillId of gameState.skills) {
+            const skill = window.skillDatabase[skillId];
+            if (skill && Math.random() < skill.triggerChance) {
+                skillTriggered = true;
+                addLog(skill.message, 'positive');
+                
+                // 应用技能效果
+                if (skill.type === 'attack' && skill.effect.damageMultiplier) {
+                    skillDamageMultiplier *= skill.effect.damageMultiplier;
+                }
+                
+                // 处理其他技能效果
+                if (skill.effect.lifeStealRatio) {
+                    skillEffects.lifeSteal = skill.effect.lifeStealRatio;
+                }
+                
+                break; // 每次攻击只触发一个技能
+            }
+        }
+    }
+    
+    // 应用技能伤害加成
+    damage = Math.floor(damage * skillDamageMultiplier);
     
     // 检查暴击
     const critChance = 0.1 + (gameState.luck * 0.01);
@@ -399,9 +476,24 @@ function playerAttackBoss(boss) {
     boss.health = Math.max(0, boss.health - finalDamage);
     
     if (isCrit) {
-        addLog(`你发动暴击攻击，对${boss.name}造成了${finalDamage}点伤害！`, 'positive');
+        if (skillTriggered) {
+            addLog(`技能暴击！你对${boss.name}造成了${finalDamage}点伤害！`, 'positive');
+        } else {
+            addLog(`你发动暴击攻击，对${boss.name}造成了${finalDamage}点伤害！`, 'positive');
+        }
     } else {
-        addLog(`你攻击${boss.name}，造成了${finalDamage}点伤害。`, 'neutral');
+        if (skillTriggered) {
+            addLog(`技能攻击对${boss.name}造成了${finalDamage}点伤害！`, 'positive');
+        } else {
+            addLog(`你攻击${boss.name}，造成了${finalDamage}点伤害。`, 'neutral');
+        }
+    }
+    
+    // 处理技能效果
+    if (skillEffects.lifeSteal) {
+        const healAmount = Math.floor(finalDamage * skillEffects.lifeSteal);
+        gameState.health = Math.min(gameState.maxHealth, gameState.health + healAmount);
+        addLog(`你吸取了${healAmount}点生命值！`, 'positive');
     }
     
     // boss反击
@@ -476,6 +568,12 @@ function handleBossVictory(boss) {
     addLog(`【胜利】你成功击败了${boss.name}！`, 'positive');
     addLog('恭喜你战胜了内心的心魔，渡劫成功！', 'positive');
     
+    // 重置战斗状态
+    isInCombat = false;
+    
+    // 更新UI以重新启用按钮
+    updateUI();
+    
     // 增加基础属性值（根据境界等级）
     const realmLevel = gameState.realm;
     const attributeBonus = Math.max(1, Math.floor(realmLevel * 0.5) + 1);
@@ -505,6 +603,9 @@ function handleBossVictory(boss) {
 function handleBossDefeat() {
     addLog('【失败】你在境界试炼中失败了...', 'negative');
     addLog('你的修为不足以通过这个境界的考验，必须轮回重生！', 'negative');
+    
+    // 重置战斗状态
+    isInCombat = false;
     
     // 触发轮回
     if (window.triggerReincarnation) {
@@ -688,6 +789,22 @@ function actualBreakthrough() {
     // 重置修为为0
     gameState.cultivation = 0;
     
+    // 随机获得一个技能
+    const availableSkills = window.skillPoolsByRealm[gameState.realm - 1] || [];
+    if (availableSkills.length > 0) {
+        // 过滤掉已经拥有的技能
+        const newSkills = availableSkills.filter(skillId => !gameState.skills.includes(skillId));
+        
+        if (newSkills.length > 0) {
+            const randomSkillId = newSkills[Math.floor(Math.random() * newSkills.length)];
+            const skill = window.skillDatabase[randomSkillId];
+            
+            gameState.skills.push(randomSkillId);
+            addLog(`【技能觉醒】你在突破过程中领悟了新技能：${skill.name}！`, 'positive');
+            addLog(`技能效果：${skill.description}`, 'positive');
+        }
+    }
+    
     addLog(`恭喜！你成功突破到了${newRealm.name}境界！`, 'positive');
     addLog('你感到体内灵力充盈，各项属性得到了提升！', 'positive');
     addLog('突破成功让你心情大好，心情值恢复满值！', 'positive');
@@ -845,6 +962,9 @@ function handleBadEvent() {
 
 // 处理战斗
 function handleCombat() {
+    // 设置战斗状态
+    isInCombat = true;
+    
     // 随机选择一个妖兽
     const monsterKeys = Object.keys(window.monsterDatabase);
     const randomMonsterKey = monsterKeys[Math.floor(Math.random() * monsterKeys.length)];
@@ -857,6 +977,9 @@ function handleCombat() {
     };
     
     addLog(`你遇到了一只${monster.name}！`, 'negative');
+    
+    // 更新UI以禁用按钮
+    updateUI();
     
     // 开始战斗回合
     startCombatRound(monsterInstance);
@@ -912,10 +1035,47 @@ function startCombatRound(monster) {
 
 // 玩家攻击
 function playerAttack(monster) {
-    // 计算伤害
+    // 计算基础伤害
     const baseDamage = gameState.attack - monster.defense;
     const damageVariance = baseDamage * window.combatSettings.playerDamageVariance;
     let damage = Math.max(1, Math.floor(baseDamage + (Math.random() * damageVariance * 2 - damageVariance)));
+    
+    // 检查技能触发
+    let skillTriggered = false;
+    let skillDamageMultiplier = 1.0;
+    let skillEffects = {};
+    
+    if (gameState.skills && gameState.skills.length > 0) {
+        for (const skillId of gameState.skills) {
+            const skill = window.skillDatabase[skillId];
+            if (skill && Math.random() < skill.triggerChance) {
+                skillTriggered = true;
+                addLog(skill.message, 'positive');
+                
+                // 应用技能效果
+                if (skill.type === 'attack' && skill.effect.damageMultiplier) {
+                    skillDamageMultiplier *= skill.effect.damageMultiplier;
+                }
+                
+                // 处理其他技能效果
+                if (skill.effect.lifeStealRatio) {
+                    skillEffects.lifeSteal = skill.effect.lifeStealRatio;
+                }
+                
+                if (skill.effect.burnDamage) {
+                    skillEffects.burn = {
+                        damage: skill.effect.burnDamage,
+                        duration: skill.effect.burnDuration || 3
+                    };
+                }
+                
+                break; // 每次攻击只触发一个技能
+            }
+        }
+    }
+    
+    // 应用技能伤害加成
+    damage = Math.floor(damage * skillDamageMultiplier);
     
     // 检查暴击
     const critChance = window.combatSettings.criticalHitChance + (gameState.luck * window.combatSettings.luckImpactOnCrit);
@@ -923,12 +1083,33 @@ function playerAttack(monster) {
     
     if (isCritical) {
         damage = Math.floor(damage * window.combatSettings.criticalHitMultiplier);
-        addLog(`暴击！你对${monster.name}造成了${damage}点伤害！`, 'positive');
+        if (skillTriggered) {
+            addLog(`技能暴击！你对${monster.name}造成了${damage}点伤害！`, 'positive');
+        } else {
+            addLog(`暴击！你对${monster.name}造成了${damage}点伤害！`, 'positive');
+        }
     } else {
-        addLog(`你攻击${monster.name}，造成了${damage}点伤害。`, 'neutral');
+        if (skillTriggered) {
+            addLog(`技能攻击对${monster.name}造成了${damage}点伤害！`, 'positive');
+        } else {
+            addLog(`你攻击${monster.name}，造成了${damage}点伤害。`, 'neutral');
+        }
     }
     
     monster.currentHealth -= damage;
+    
+    // 处理技能效果
+    if (skillEffects.lifeSteal) {
+        const healAmount = Math.floor(damage * skillEffects.lifeSteal);
+        gameState.health = Math.min(gameState.maxHealth, gameState.health + healAmount);
+        addLog(`你吸取了${healAmount}点生命值！`, 'positive');
+    }
+    
+    if (skillEffects.burn) {
+        addLog(`${monster.name}被灼烧了！`, 'negative');
+        // 这里可以添加持续伤害逻辑
+    }
+    
     addLog(`${monster.name}剩余生命值：${Math.max(0, monster.currentHealth)}`, 'neutral');
 }
 
@@ -998,6 +1179,12 @@ function tryToFlee(monster) {
     if (Math.random() < fleeChance) {
         // 逃跑成功
         addLog(`你成功逃脱了${monster.name}的追击！`, 'positive');
+        
+        // 重置战斗状态
+        isInCombat = false;
+        
+        // 更新UI以重新启用按钮
+        updateUI();
     } else {
         // 逃跑失败
         addLog(`你试图逃跑，但${monster.name}拦住了你的去路！`, 'negative');
@@ -1038,6 +1225,12 @@ function endCombat(monster) {
     
     gameState.health = Math.min(gameState.health + healAmount, gameState.maxHealth);
     addLog(`战斗结束后，你恢复了${healAmount}点生命值。`, 'positive');
+    
+    // 重置战斗状态
+    isInCombat = false;
+    
+    // 更新UI以重新启用按钮
+    updateUI();
 }
 
 // 发现物品

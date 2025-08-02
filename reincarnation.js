@@ -199,6 +199,12 @@ class ReincarnationSystem {
         // 设置游戏为已开始状态
         gameState.isGameStarted = true;
         
+        // 清空日志信息
+        const logContainer = document.getElementById('log-container');
+        if (logContainer) {
+            logContainer.innerHTML = '';
+        }
+        
         // 更新游戏UI
         updateUI();
         
