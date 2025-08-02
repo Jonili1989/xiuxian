@@ -346,8 +346,8 @@ class AdventureEventManager {
 
         // 添加到事件日志容器
         const logContainer = document.getElementById('log-container');
-        logContainer.appendChild(adventureOptionsDiv);
-        logContainer.scrollTop = logContainer.scrollHeight;
+        logContainer.insertBefore(adventureOptionsDiv, logContainer.firstChild);
+        // 新消息在顶部，不需要滚动
 
         // 禁用所有游戏操作按钮
         this.disableGameControls();
@@ -592,8 +592,8 @@ class AdventureEventManager {
         combatContainer.appendChild(fleeBtn);
         
         const logContainer = document.getElementById('log-container');
-        logContainer.appendChild(combatContainer);
-        logContainer.scrollTop = logContainer.scrollHeight;
+        logContainer.insertBefore(combatContainer, logContainer.firstChild);
+        // 新消息在顶部，不需要滚动
     }
 
     // 奇遇战斗中玩家攻击

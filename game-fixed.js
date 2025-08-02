@@ -222,8 +222,8 @@ function addLog(message, type = 'neutral') {
         logEntry.textContent = message;
     }
     
-    elements.logContainer.appendChild(logEntry);
-    elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
+    elements.logContainer.insertBefore(logEntry, elements.logContainer.firstChild);
+    // 不需要滚动到底部，因为新消息在顶部
 }
 
 // 游戏结束
@@ -260,7 +260,7 @@ function showReincarnationButton() {
     };
     
     // 将按钮添加到游戏操作区域
-    const actionsContainer = document.querySelector('.game-controls');
+    const actionsContainer = document.querySelector('.action-buttons');
     actionsContainer.appendChild(reincarnationBtn);
 }
 
@@ -441,8 +441,8 @@ function startBossCombatRound(boss) {
     
     combatContainer.appendChild(attackBtn);
     combatContainer.appendChild(fleeBtn);
-    elements.logContainer.appendChild(combatContainer);
-    elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
+    elements.logContainer.insertBefore(combatContainer, elements.logContainer.firstChild);
+    // 新消息在顶部，不需要滚动
 }
 
 // 玩家攻击boss
@@ -665,8 +665,8 @@ function checkRealmBreakthrough() {
         breakthroughBtn.addEventListener('click', performBreakthrough);
         
         // 添加到日志容器
-        elements.logContainer.appendChild(breakthroughBtn);
-        elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
+        elements.logContainer.insertBefore(breakthroughBtn, elements.logContainer.firstChild);
+        // 新消息在顶部，不需要滚动
         
         return true; // 返回true表示可以突破
     }
@@ -1133,8 +1133,8 @@ function startCombatRound(monster) {
             combatOptionsDiv.appendChild(attackBtn);
             combatOptionsDiv.appendChild(fleeBtn);
             
-            elements.logContainer.appendChild(combatOptionsDiv);
-            elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
+            elements.logContainer.insertBefore(combatOptionsDiv, elements.logContainer.firstChild);
+            // 新消息在顶部，不需要滚动
         } else {
             // 玩家死亡，游戏结束
             gameOver();
