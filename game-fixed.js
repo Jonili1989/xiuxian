@@ -1018,16 +1018,26 @@ function selectMonsterByRealm() {
     let selectedMonster;
     
     if (playerRealm >= 2) {
-        // 从金丹期开始出现3级妖兽
+        // 从金丹期开始出现3级妖兽，低等级妖兽概率进一步降低
         const level3Chance = Math.min(0.1 * (playerRealm - 1), 0.6); // 最高60%概率
-        const level2Chance = Math.min(0.15 * playerRealm, 0.4); // 2级妖兽概率降低
-        const level1Chance = 1 - level3Chance - level2Chance;
+        let level2Chance = Math.min(0.15 * playerRealm, 0.4); // 2级妖兽概率
+        let level1Chance = 1 - level3Chance - level2Chance;
+        
+        // 金丹期及以上，低等级妖兽触发概率降低
+        const reductionFactor = Math.min(0.5 + (playerRealm - 2) * 0.1, 0.8); // 最多降低到20%
+        level2Chance *= reductionFactor; // 2级妖兽概率降低
+        level1Chance *= reductionFactor * 0.5; // 1级妖兽概率大幅降低
+        
+        // 重新计算总概率并归一化
+        const totalChance = level3Chance + level2Chance + level1Chance;
+        const normalizedLevel3 = level3Chance / totalChance;
+        const normalizedLevel2 = level2Chance / totalChance;
         
         const rand = Math.random();
-        if (rand < level3Chance) {
+        if (rand < normalizedLevel3) {
             monsterLevel = 3;
             selectedMonster = advancedMonsters[Math.floor(Math.random() * advancedMonsters.length)];
-        } else if (rand < level3Chance + level2Chance) {
+        } else if (rand < normalizedLevel3 + normalizedLevel2) {
             monsterLevel = 2;
             selectedMonster = advancedMonsters[Math.floor(Math.random() * advancedMonsters.length)];
         } else {
@@ -1035,14 +1045,24 @@ function selectMonsterByRealm() {
             selectedMonster = basicMonsters[Math.floor(Math.random() * basicMonsters.length)];
         }
     } else if (playerRealm >= 1) {
-        // 筑基期：1级和2级妖兽
+        // 筑基期：1级和2级妖兽，但1级妖兽概率降低
         const level2Chance = Math.min(0.15 * playerRealm, 0.5);
-        if (Math.random() < level2Chance && advancedMonsters.length > 0) {
+        // 筑基期及以上，1级妖兽（低等级）触发概率降低30%
+        const level1ReductionFactor = 0.7; // 降低30%概率
+        const adjustedLevel1Chance = (1 - level2Chance) * level1ReductionFactor;
+        const totalChance = level2Chance + adjustedLevel1Chance;
+        
+        const rand = Math.random();
+        if (rand < level2Chance / totalChance && advancedMonsters.length > 0) {
             monsterLevel = 2;
             selectedMonster = advancedMonsters[Math.floor(Math.random() * advancedMonsters.length)];
-        } else {
+        } else if (rand < totalChance) {
             monsterLevel = 1;
             selectedMonster = basicMonsters[Math.floor(Math.random() * basicMonsters.length)];
+        } else {
+            // 如果随机数超出总概率，重新选择2级妖兽
+            monsterLevel = 2;
+            selectedMonster = advancedMonsters[Math.floor(Math.random() * advancedMonsters.length)];
         }
     } else {
         // 练气期：只有1级妖兽

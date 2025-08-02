@@ -102,7 +102,7 @@ const realmBosses = {
 const dungeonBosses = {
     shadow_lord: {
         name: "暗影领主",
-        health: 120,
+        health: 119,
         attack: 25,
         defense: 15,
         speed: 12,
@@ -113,7 +113,7 @@ const dungeonBosses = {
     },
     flame_emperor: {
         name: "烈焰帝君",
-        health: 150,
+        health: 149,
         attack: 30,
         defense: 18,
         speed: 10,
@@ -124,7 +124,7 @@ const dungeonBosses = {
     },
     ice_queen: {
         name: "寒冰女王",
-        health: 130,
+        health: 129,
         attack: 22,
         defense: 20,
         speed: 8,
@@ -135,7 +135,7 @@ const dungeonBosses = {
     },
     thunder_king: {
         name: "雷霆之王",
-        health: 140,
+        health: 139,
         attack: 28,
         defense: 16,
         speed: 14,
@@ -329,12 +329,12 @@ const skillEffectHandlers = {
 
 // 角色默认属性
 const characterDefaults = {
-    health: 100,
-    maxHealth: 100,
-    attack: 10,
-    defense: 5,
-    luck: 5,
-    maxLuck: 10,
+    health: 120,
+    maxHealth: 120,
+    attack: 12,
+    defense: 7,
+    luck: 7,
+    maxLuck: 12,
     cultivation: 0,
     realm: 0,
     isGameStarted: false,
