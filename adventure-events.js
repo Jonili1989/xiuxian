@@ -4,12 +4,12 @@
 const adventureEvents = [
     {
         id: 'mysterious_cave',
-        title: '神秘洞穴',
+        title: '🏔️ 神秘洞穴',
         description: '你在修炼/探索时发现了一个散发着奇异光芒的洞穴...',
         options: [
             {
                 text: '谨慎探索',
-                luckThreshold: 30, // 幸运值阈值
+                successRate: 70, // 基础成功率（谨慎行动，成功率较高）
                 goodResult: {
                     description: '你小心翼翼地探索，发现了一颗灵石！',
                     effects: {
@@ -27,7 +27,7 @@ const adventureEvents = [
             },
             {
                 text: '勇敢冲入',
-                luckThreshold: 50,
+                successRate: 40, // 基础成功率（高风险高回报）
                 goodResult: {
                     description: '你的勇气得到了回报！发现了珍贵的修炼心法！',
                     effects: {
@@ -46,7 +46,7 @@ const adventureEvents = [
             },
             {
                 text: '绕道而行',
-                luckThreshold: 10,
+                successRate: 80, // 基础成功率（保守选择，成功率很高）
                 goodResult: {
                     description: '明智的选择！你避开了危险，心情舒畅。',
                     effects: {
@@ -64,12 +64,12 @@ const adventureEvents = [
     },
     {
         id: 'ancient_scroll',
-        title: '古老卷轴',
+        title: '📜 古老卷轴',
         description: '你偶然发现了一卷古老的修炼秘籍...',
         options: [
             {
                 text: '仔细研读',
-                luckThreshold: 40,
+                successRate: 60, // 基础成功率（需要一定悟性）
                 goodResult: {
                     description: '你领悟了其中的奥义，修为大增！',
                     effects: {
@@ -89,7 +89,7 @@ const adventureEvents = [
             },
             {
                 text: '收藏起来',
-                luckThreshold: 20,
+                successRate: 75, // 基础成功率（保守选择）
                 goodResult: {
                     description: '你将秘籍妥善保存，日后或许有用。',
                     effects: {
@@ -107,12 +107,12 @@ const adventureEvents = [
     },
     {
         id: 'spirit_beast',
-        title: '灵兽相遇',
+        title: '🦌 灵兽相遇',
         description: '一只受伤的灵兽出现在你面前，眼中满含祈求...',
         options: [
             {
                 text: '救治灵兽',
-                luckThreshold: 35,
+                successRate: 65, // 基础成功率（善意行为，中等成功率）
                 goodResult: {
                     description: '灵兽康复后，感激地赠予你一颗内丹！',
                     effects: {
@@ -124,14 +124,13 @@ const adventureEvents = [
                 badResult: {
                     description: '灵兽突然发狂攻击了你！',
                     effects: {
-                        health: -40,
-                        mood: -12
+                        combat: 'spirit_beast' // 触发战斗
                     }
                 }
             },
             {
                 text: '攻击灵兽',
-                luckThreshold: 40,
+                successRate: 45, // 基础成功率（攻击受伤灵兽，风险较高）
                 goodResult: {
                     description: '你成功击败了灵兽，获得了它的内丹！',
                     effects: {
@@ -149,7 +148,7 @@ const adventureEvents = [
             },
             {
                 text: '保持距离',
-                luckThreshold: 25,
+                successRate: 85, // 基础成功率（安全选择，成功率很高）
                 goodResult: {
                     description: '你明智地保持了距离，灵兽平静地离开了。',
                     effects: {
@@ -167,12 +166,12 @@ const adventureEvents = [
     },
     {
         id: 'mysterious_merchant',
-        title: '神秘商人',
+        title: '🧙 神秘商人',
         description: '一位神秘的商人出现，愿意用奇物与你交换修为...',
         options: [
             {
                 text: '同意交换',
-                luckThreshold: 45,
+                successRate: 35, // 基础成功率（高风险交易）
                 goodResult: {
                     description: '商人给了你一件宝物，大大提升了你的实力！',
                     effects: {
@@ -192,7 +191,7 @@ const adventureEvents = [
             },
             {
                 text: '拒绝交换',
-                luckThreshold: 15,
+                successRate: 90, // 基础成功率（谨慎选择，几乎总是正确的）
                 goodResult: {
                     description: '你的谨慎是对的，商人露出了邪恶的笑容后离开。',
                     effects: {
@@ -211,12 +210,12 @@ const adventureEvents = [
     },
     {
         id: 'heavenly_phenomenon',
-        title: '天象异变',
+        title: '🌟 天象异变',
         description: '天空中出现了罕见的异象，似乎蕴含着天地灵气...',
         options: [
             {
                 text: '借机修炼',
-                luckThreshold: 55,
+                successRate: 30, // 基础成功率（极高风险，极高回报）
                 goodResult: {
                     description: '你成功借助天地灵气，修为突飞猛进！',
                     effects: {
@@ -235,7 +234,7 @@ const adventureEvents = [
             },
             {
                 text: '静观其变',
-                luckThreshold: 20,
+                successRate: 75, // 基础成功率（稳妥选择）
                 goodResult: {
                     description: '你静心观察，领悟了一些天地法则。',
                     effects: {
@@ -265,8 +264,8 @@ class AdventureEventManager {
     triggerRandomEvent() {
         if (this.isEventActive) return false;
         
-        // 30% 概率触发奇遇事件
-        if (Math.random() > 0.3) return false;
+        // 80% 概率触发奇遇事件（便于测试弹窗效果）
+        if (Math.random() > 0.8) return false;
         
         const randomEvent = adventureEvents[Math.floor(Math.random() * adventureEvents.length)];
         this.currentEvent = randomEvent;
@@ -308,9 +307,25 @@ class AdventureEventManager {
             btn.addEventListener('click', (e) => {
                 const optionIndex = parseInt(e.target.dataset.option);
                 this.handleOptionChoice(optionIndex);
-                document.body.removeChild(eventDialog);
+                this.closeEventDialog(eventDialog);
             });
         });
+    }
+
+    // 关闭事件对话框（带动画）
+    closeEventDialog(eventDialog) {
+        const content = eventDialog.querySelector('.adventure-event-content');
+        
+        // 添加关闭动画
+        eventDialog.style.animation = 'fadeOutBackground 0.3s ease-out forwards';
+        content.style.animation = 'slideOutScale 0.3s ease-out forwards';
+        
+        // 动画结束后移除元素
+        setTimeout(() => {
+            if (eventDialog.parentNode) {
+                document.body.removeChild(eventDialog);
+            }
+        }, 300);
     }
 
     // 处理选项选择
@@ -322,13 +337,22 @@ class AdventureEventManager {
         
         // 记录玩家的选择
         addLog(`你选择了：${option.text}`, 'neutral');
-        addLog(`（需要幸运值：${option.luckThreshold}，你的幸运值：${playerLuck}）`, 'neutral');
         
-        // 基于幸运值判定结果
-        const isGoodResult = playerLuck >= option.luckThreshold;
+        // 计算成功概率：基础成功率 + 幸运值影响
+        // 幸运值每点增加3%成功率，最低10%，最高90%
+        const baseSuccessRate = option.successRate || 50; // 基础成功率（百分比）
+        const luckBonus = (playerLuck - 5) * 3; // 以5为基准，每点幸运值±3%
+        const finalSuccessRate = Math.max(10, Math.min(90, baseSuccessRate + luckBonus));
+        
+        addLog(`（基础成功率：${baseSuccessRate}%，幸运值加成：${luckBonus >= 0 ? '+' : ''}${luckBonus}%，最终成功率：${finalSuccessRate}%）`, 'neutral');
+        
+        // 基于概率判定结果
+        const randomRoll = Math.random() * 100;
+        const isGoodResult = randomRoll < finalSuccessRate;
         const result = isGoodResult ? option.goodResult : option.badResult;
 
         // 显示判定结果
+        addLog(`掷骰结果：${randomRoll.toFixed(1)}`, 'neutral');
         if (isGoodResult) {
             addLog('幸运女神眷顾了你！', 'positive');
         } else {
@@ -386,15 +410,11 @@ class AdventureEventManager {
     applyEffects(effects) {
         for (const [stat, value] of Object.entries(effects)) {
             if (stat === 'combat') {
-                // 触发战斗系统
-                if (typeof handleCombat === 'function') {
-                    addLog('战斗即将开始！', 'negative');
-                    setTimeout(() => {
-                        handleCombat();
-                    }, 1000);
-                } else {
-                    addLog('战斗系统暂时不可用！', 'negative');
-                }
+                // 触发奇遇事件专用战斗系统
+                addLog('战斗即将开始！', 'negative');
+                setTimeout(() => {
+                    this.handleAdventureCombat(value);
+                }, 1000);
             } else if (gameState.hasOwnProperty(stat)) {
                 gameState[stat] += value;
                 
@@ -410,6 +430,186 @@ class AdventureEventManager {
                 } else if (['attack', 'defense'].includes(stat)) {
                     gameState[stat] = Math.max(1, gameState[stat]);
                 }
+            }
+        }
+    }
+
+    // 奇遇事件专用战斗系统
+    handleAdventureCombat(combatType) {
+        // 检查是否已经在战斗中
+        if (window.isInCombat) {
+            addLog('你正在战斗中，无法开始新的战斗！', 'negative');
+            return;
+        }
+
+        // 设置奇遇战斗状态
+        window.isInAdventureCombat = true;
+        
+        // 根据战斗类型创建敌人
+        let enemy;
+        if (combatType === 'spirit_beast') {
+            enemy = {
+                name: '受伤的灵兽',
+                health: Math.floor(gameState.attack * 1.5),
+                maxHealth: Math.floor(gameState.attack * 1.5),
+                attack: Math.floor(gameState.attack * 0.8),
+                defense: Math.floor(gameState.defense * 0.6),
+                currentHealth: Math.floor(gameState.attack * 1.5)
+            };
+        } else {
+            // 默认敌人
+            enemy = {
+                name: '神秘敌人',
+                health: gameState.attack,
+                maxHealth: gameState.attack,
+                attack: Math.floor(gameState.attack * 0.7),
+                defense: Math.floor(gameState.defense * 0.5),
+                currentHealth: gameState.attack
+            };
+        }
+
+        addLog(`奇遇战斗：你遇到了${enemy.name}！`, 'negative');
+        addLog(`${enemy.name}状态：生命值 ${enemy.health}，攻击力 ${enemy.attack}，防御力 ${enemy.defense}`, 'neutral');
+        
+        // 开始奇遇战斗回合
+        this.startAdventureCombatRound(enemy);
+    }
+
+    // 奇遇战斗回合
+    startAdventureCombatRound(enemy) {
+        if (gameState.health <= 0) {
+            this.handleAdventureCombatDefeat();
+            return;
+        }
+        
+        if (enemy.currentHealth <= 0) {
+            this.handleAdventureCombatVictory(enemy);
+            return;
+        }
+
+        // 显示当前状态
+        addLog(`你的生命值：${gameState.health}/${gameState.maxHealth}`, 'neutral');
+        addLog(`${enemy.name}的生命值：${enemy.currentHealth}/${enemy.maxHealth}`, 'neutral');
+        
+        // 创建战斗选项
+        const combatContainer = document.createElement('div');
+        combatContainer.className = 'adventure-combat-options';
+        
+        const attackBtn = document.createElement('button');
+        attackBtn.textContent = '攻击';
+        attackBtn.addEventListener('click', () => {
+            combatContainer.remove();
+            this.playerAttackInAdventure(enemy);
+        });
+        
+        const fleeBtn = document.createElement('button');
+        fleeBtn.textContent = '逃跑';
+        fleeBtn.addEventListener('click', () => {
+            combatContainer.remove();
+            this.tryToFleeFromAdventure(enemy);
+        });
+        
+        combatContainer.appendChild(attackBtn);
+        combatContainer.appendChild(fleeBtn);
+        
+        const logContainer = document.getElementById('log-container');
+        logContainer.appendChild(combatContainer);
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    // 奇遇战斗中玩家攻击
+    playerAttackInAdventure(enemy) {
+        const damage = Math.max(1, gameState.attack - enemy.defense);
+        enemy.currentHealth -= damage;
+        
+        addLog(`你攻击了${enemy.name}，造成${damage}点伤害！`, 'positive');
+        
+        if (enemy.currentHealth > 0) {
+            // 敌人反击
+            this.enemyAttackInAdventure(enemy);
+        } else {
+            // 敌人死亡
+            this.handleAdventureCombatVictory(enemy);
+        }
+    }
+
+    // 奇遇战斗中敌人攻击
+    enemyAttackInAdventure(enemy) {
+        const damage = Math.max(1, enemy.attack - gameState.defense);
+        gameState.health -= damage;
+        
+        addLog(`${enemy.name}攻击了你，造成${damage}点伤害！`, 'negative');
+        
+        if (gameState.health > 0) {
+            // 继续战斗
+            setTimeout(() => {
+                this.startAdventureCombatRound(enemy);
+            }, 1000);
+        } else {
+            // 玩家死亡
+            this.handleAdventureCombatDefeat();
+        }
+    }
+
+    // 尝试从奇遇战斗中逃跑
+    tryToFleeFromAdventure(enemy) {
+        const fleeChance = 0.6 + (gameState.luck * 0.02);
+        
+        if (Math.random() < fleeChance) {
+            addLog('你成功逃脱了！', 'positive');
+            window.isInAdventureCombat = false;
+            if (typeof updateUI === 'function') {
+                updateUI();
+            }
+        } else {
+            addLog('逃跑失败！', 'negative');
+            this.enemyAttackInAdventure(enemy);
+        }
+    }
+
+    // 奇遇战斗胜利
+    handleAdventureCombatVictory(enemy) {
+        addLog(`【奇遇战斗胜利】你击败了${enemy.name}！`, 'positive');
+        
+        // 根据敌人类型给予奖励
+        if (enemy.name === '受伤的灵兽') {
+            gameState.cultivation += 60;
+            gameState.attack += 2;
+            addLog('你从战斗中获得了经验：修为+60，攻击力+2', 'positive');
+        } else {
+            gameState.cultivation += 40;
+            gameState.mood += 10;
+            addLog('你从战斗中获得了经验：修为+40，心情+10', 'positive');
+        }
+        
+        // 战斗后恢复少量生命值
+        const healAmount = Math.floor(gameState.maxHealth * 0.1);
+        gameState.health = Math.min(gameState.health + healAmount, gameState.maxHealth);
+        addLog(`战斗结束后，你恢复了${healAmount}点生命值。`, 'positive');
+        
+        // 重置战斗状态
+        window.isInAdventureCombat = false;
+        
+        if (typeof updateUI === 'function') {
+            updateUI();
+        }
+    }
+
+    // 奇遇战斗失败
+    handleAdventureCombatDefeat() {
+        addLog('【奇遇战斗失败】你在战斗中败北...', 'negative');
+        
+        // 重置战斗状态
+        window.isInAdventureCombat = false;
+        
+        // 检查是否游戏结束
+        if (gameState.health <= 0) {
+            if (typeof gameOver === 'function') {
+                gameOver();
+            }
+        } else {
+            if (typeof updateUI === 'function') {
+                updateUI();
             }
         }
     }

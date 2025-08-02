@@ -170,16 +170,17 @@ function updateUI() {
     // 根据行动力、心情值和战斗状态禁用/启用按钮
     const noActionPoints = gameState.actionPoints <= 0;
     const lowMood = gameState.mood < 25;
+    const inAnyCombat = isInCombat || window.isInAdventureCombat;
     
     // 调试信息：显示当前战斗状态
-    if (isInCombat) {
+    if (inAnyCombat) {
         console.log('当前处于战斗状态，禁用按钮');
     }
     
-    elements.meditateBtn.disabled = noActionPoints || lowMood || !gameState.isGameStarted || isInCombat;
-    elements.exploreBtn.disabled = noActionPoints || !gameState.isGameStarted || isInCombat;
-    elements.restBtn.disabled = noActionPoints || !gameState.isGameStarted || isInCombat;
-    elements.endDayBtn.disabled = !gameState.isGameStarted || isInCombat;
+    elements.meditateBtn.disabled = noActionPoints || lowMood || !gameState.isGameStarted || inAnyCombat;
+    elements.exploreBtn.disabled = noActionPoints || !gameState.isGameStarted || inAnyCombat;
+    elements.restBtn.disabled = noActionPoints || !gameState.isGameStarted || inAnyCombat;
+    elements.endDayBtn.disabled = !gameState.isGameStarted || inAnyCombat;
 }
 
 // 添加日志
@@ -790,7 +791,7 @@ function actualBreakthrough() {
     gameState.cultivation = 0;
     
     // 随机获得一个技能
-    const availableSkills = window.skillPoolsByRealm[gameState.realm - 1] || [];
+    const availableSkills = window.skillPoolsByRealm[gameState.realm] || [];
     if (availableSkills.length > 0) {
         // 过滤掉已经拥有的技能
         const newSkills = availableSkills.filter(skillId => !gameState.skills.includes(skillId));
@@ -903,16 +904,20 @@ function explore() {
     
     // 决定探索结果
     const eventRoll = Math.random();
+    let eventTriggered = false;
     
     if (eventRoll < window.explorationSettings.combatChance) {
         // 遭遇战斗
         handleCombat();
+        eventTriggered = true;
     } else if (eventRoll < window.explorationSettings.combatChance + window.explorationSettings.goodEventChance) {
         // 遭遇好事件
         handleGoodEvent();
+        eventTriggered = true;
     } else if (eventRoll < window.explorationSettings.combatChance + window.explorationSettings.goodEventChance + window.explorationSettings.badEventChance) {
         // 遭遇坏事件
         handleBadEvent();
+        eventTriggered = true;
     } else {
         // 普通探索，可能发现物品
         const itemFindChance = window.explorationSettings.itemFindChance + (gameState.luck * window.explorationSettings.luckImpactOnItemFind);
@@ -920,14 +925,18 @@ function explore() {
         if (Math.random() < itemFindChance) {
             // 找到物品
             findItem();
+            eventTriggered = true;
         } else {
-            addLog('你探索了一段时间，但没有发现什么特别的东西。', 'neutral');
+            // 没有发现物品，尝试触发奇遇事件
+            if (window.adventureEventManager) {
+                const adventureTriggered = window.adventureEventManager.triggerRandomEvent();
+                if (!adventureTriggered) {
+                    addLog('你探索了一段时间，但没有发现什么特别的东西。', 'neutral');
+                }
+            } else {
+                addLog('你探索了一段时间，但没有发现什么特别的东西。', 'neutral');
+            }
         }
-    }
-    
-    // 尝试触发奇遇事件
-    if (window.adventureEventManager) {
-        window.adventureEventManager.triggerRandomEvent();
     }
     
     updateUI();
