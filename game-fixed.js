@@ -40,6 +40,9 @@ const elements = {
     attack: document.getElementById('attack'),
     defense: document.getElementById('defense'),
     luck: document.getElementById('luck'),
+    mood: document.getElementById('mood'),
+    maxMood: document.getElementById('max-mood'),
+    moodBar: document.getElementById('mood-bar'),
     cultivation: document.getElementById('cultivation'),
     cultivationCap: document.getElementById('cultivation-cap'),
     cultivationBar: document.getElementById('cultivation-bar'),
@@ -116,6 +119,8 @@ function updateUI() {
     elements.attack.textContent = gameState.attack;
     elements.defense.textContent = gameState.defense;
     elements.luck.textContent = gameState.luck;
+    elements.mood.textContent = gameState.mood;
+    elements.maxMood.textContent = gameState.maxMood;
     elements.day.textContent = gameState.day;
     elements.actionPoints.textContent = gameState.actionPoints;
     elements.maxActionPoints.textContent = gameState.maxActionPoints;
@@ -145,9 +150,21 @@ function updateUI() {
     const cultivationPercent = (gameState.cultivation / currentRealm.cap) * 100;
     elements.cultivationBar.style.width = `${cultivationPercent}%`;
 
-    // 根据行动力禁用/启用按钮
+    const moodPercent = (gameState.mood / gameState.maxMood) * 100;
+    elements.moodBar.style.width = `${moodPercent}%`;
+    // 根据心情值改变进度条颜色
+    if (moodPercent > 70) {
+        elements.moodBar.style.backgroundColor = '#4caf50'; // 绿色
+    } else if (moodPercent > 30) {
+        elements.moodBar.style.backgroundColor = '#ff9800'; // 橙色
+    } else {
+        elements.moodBar.style.backgroundColor = '#f44336'; // 红色
+    }
+
+    // 根据行动力和心情值禁用/启用按钮
     const noActionPoints = gameState.actionPoints <= 0;
-    elements.meditateBtn.disabled = noActionPoints || !gameState.isGameStarted;
+    const lowMood = gameState.mood < 25;
+    elements.meditateBtn.disabled = noActionPoints || lowMood || !gameState.isGameStarted;
     elements.exploreBtn.disabled = noActionPoints || !gameState.isGameStarted;
     elements.restBtn.disabled = noActionPoints || !gameState.isGameStarted;
     elements.endDayBtn.disabled = !gameState.isGameStarted;
@@ -217,7 +234,11 @@ function rest() {
     gameState.health = Math.min(gameState.health + recoveryAmount, gameState.maxHealth);
     const actualRecovery = gameState.health - oldHealth;
 
-    addLog(`你休息了一会儿，恢复了${actualRecovery}点生命值。`, 'positive');
+    // 恢复心情值
+    const moodRecover = Math.floor(Math.random() * 8) + 3; // 3-10点随机恢复
+    gameState.mood = Math.min(gameState.maxMood, gameState.mood + moodRecover);
+
+    addLog(`你休息了一会儿，恢复了${actualRecovery}点生命值，心情值+${moodRecover}。`, 'positive');
     updateUI();
 }
 
@@ -238,6 +259,11 @@ function endDay() {
     
     // 处理每日事件
     handleDailyEvent();
+    
+    // 结束今天恢复心情值
+    const moodRecover = Math.floor(Math.random() * 12) + 8; // 8-19点随机恢复
+    gameState.mood = Math.min(gameState.maxMood, gameState.mood + moodRecover);
+    addLog(`新的一天开始了，你感到精神焕发，心情值+${moodRecover}`, 'positive');
     
     addLog(`第${gameState.day}天开始了，你有${gameState.actionPoints}点行动力。`, 'neutral');
     updateUI();
@@ -626,12 +652,14 @@ function actualBreakthrough() {
     gameState.defense += window.realmBreakthroughBonuses.defense;
     gameState.maxActionPoints += window.realmBreakthroughBonuses.actionPoints;
     gameState.actionPoints = gameState.maxActionPoints; // 突破后恢复满行动力
+    gameState.mood = gameState.maxMood; // 突破后恢复满心情值
     
     // 重置修为为0
     gameState.cultivation = 0;
     
     addLog(`恭喜！你成功突破到了${newRealm.name}境界！`, 'positive');
     addLog('你感到体内灵力充盈，各项属性得到了提升！', 'positive');
+    addLog('突破成功让你心情大好，心情值恢复满值！', 'positive');
     addLog(`新的境界试炼将在${newRealm.dayLimit}天后开始。`, 'neutral');
     
     updateUI();
@@ -644,8 +672,18 @@ function meditate() {
         return;
     }
 
+    if (gameState.mood < 25) {
+        addLog('你心情低落，无法专心修炼！', 'negative');
+        return;
+    }
+
     // 消耗行动力
     gameState.actionPoints -= window.cultivationSettings.actionPointCost;
+
+    // 随机减少心情值
+    const moodDecrease = Math.floor(Math.random() * 15) + 5; // 5-19点随机减少
+    gameState.mood = Math.max(0, gameState.mood - moodDecrease);
+    addLog(`修炼消耗了你的精神，心情值-${moodDecrease}`, 'neutral');
 
     // 计算获得的修为
     const baseCultivationGain = window.cultivationSettings.baseCultivationGain;
@@ -704,6 +742,11 @@ function explore() {
     gameState.actionPoints -= window.explorationSettings.actionPointCost;
 
     addLog('你外出探索...', 'neutral');
+    
+    // 探索恢复心情值
+    const moodRecover = Math.floor(Math.random() * 10) + 5; // 5-14点随机恢复
+    gameState.mood = Math.min(gameState.maxMood, gameState.mood + moodRecover);
+    addLog(`外出探索让你心情愉悦，心情值+${moodRecover}`, 'positive');
     
     // 决定探索结果
     const eventRoll = Math.random();

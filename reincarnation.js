@@ -171,6 +171,7 @@ class ReincarnationSystem {
         
         // 重置游戏状态
         gameState.health = gameState.maxHealth;
+        gameState.mood = gameState.maxMood; // 重置心情值
         gameState.day = 1;
         gameState.actionPoints = gameState.maxActionPoints;
         gameState.cultivation = 0;
