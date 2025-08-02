@@ -24,6 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.defense = Math.max(1, gameState.defense + defenseVariance);
         gameState.luck = Math.max(1, Math.min(gameState.maxLuck, gameState.luck + luckVariance));
         
+        // 初始化传奇技能相关属性
+        gameState.activeEffects = gameState.activeEffects || [];
+        gameState.reviveAvailable = gameState.reviveAvailable || false;
+        
         // 初始化UI
         updateUI();
         
@@ -61,7 +65,8 @@ const elements = {
     meditateBtn: document.getElementById('meditate'),
     exploreBtn: document.getElementById('explore'),
     restBtn: document.getElementById('rest'),
-    endDayBtn: document.getElementById('end-day')
+    endDayBtn: document.getElementById('end-day'),
+    dungeonChallengeBtn: document.getElementById('dungeon-challenge')
 };
 
 // 初始化游戏
@@ -94,6 +99,7 @@ function initGame() {
     elements.meditateBtn.disabled = false;
     elements.exploreBtn.disabled = false;
     elements.restBtn.disabled = false;
+    elements.dungeonChallengeBtn.disabled = false;
     elements.endDayBtn.disabled = false;
 }
 
@@ -110,6 +116,9 @@ function setupEventListeners() {
     
     // 恢复养伤按钮
     elements.restBtn.addEventListener('click', rest);
+    
+    // 副本挑战按钮
+    elements.dungeonChallengeBtn.addEventListener('click', startDungeonChallenge);
     
     // 结束今天按钮
     elements.endDayBtn.addEventListener('click', endDay);
@@ -182,6 +191,7 @@ function updateUI() {
     elements.meditateBtn.disabled = noActionPoints || lowMood || !gameState.isGameStarted || inAnyCombat;
     elements.exploreBtn.disabled = noActionPoints || !gameState.isGameStarted || inAnyCombat;
     elements.restBtn.disabled = noActionPoints || !gameState.isGameStarted || inAnyCombat;
+    elements.dungeonChallengeBtn.disabled = noActionPoints || !gameState.isGameStarted || inAnyCombat;
     elements.endDayBtn.disabled = !gameState.isGameStarted || inAnyCombat;
 }
 
@@ -1252,6 +1262,9 @@ function monsterAttack(monster) {
     addLog(`${monster.name}攻击了你，造成了${damage}点伤害！`, 'negative');
     gameState.health -= damage;
     addLog(`你剩余生命值：${Math.max(0, gameState.health)}`, 'neutral');
+    
+    // 更新UI显示
+    updateUI();
 }
 
 // 尝试逃跑
@@ -1329,4 +1342,337 @@ function findItem() {
         const result = itemEffect.effect(gameState);
         addLog(`你获得了${randomItem}，${itemEffect.description}。效果：${result}`, 'positive');
     }
+}
+
+// 副本挑战系统
+let dungeonState = {
+    isInDungeon: false,
+    currentRound: 0,
+    playerHealthBeforeDungeon: 0
+};
+
+function startDungeonChallenge() {
+    if (gameState.actionPoints <= 0) {
+        addLog('行动力不足，无法进行副本挑战！', 'negative');
+        return;
+    }
+    
+    // 消耗行动力
+    gameState.actionPoints -= 1;
+    
+    // 保存玩家进入副本前的生命值
+    dungeonState.playerHealthBeforeDungeon = gameState.health;
+    dungeonState.isInDungeon = true;
+    dungeonState.currentRound = 1;
+    
+    addLog('=== 副本挑战开始 ===', 'neutral');
+    addLog('第一轮：与同等级妖兽战斗！', 'neutral');
+    
+    // 开始第一轮战斗
+    startDungeonRound1();
+}
+
+function startDungeonRound1() {
+    // 设置战斗状态
+    isInCombat = true;
+    
+    // 选择与玩家同等级的妖兽
+    const monster = selectMonsterByRealm();
+    
+    // 创建妖兽实例
+    const monsterInstance = {
+        ...monster,
+        currentHealth: monster.health,
+        isDungeonMonster: true
+    };
+    
+    const tierLevel = `（${monster.level}级）`;
+    addLog(`副本第一轮：你遇到了一只${monster.name}${tierLevel}！`, 'negative');
+    addLog(`🩸 战斗开始 - 你的生命值：${gameState.health}/${gameState.maxHealth} | ${monster.name}生命值：${monsterInstance.currentHealth}/${monsterInstance.health}`, 'neutral');
+    
+    // 更新UI
+    updateUI();
+    
+    // 开始战斗回合
+    startDungeonCombatRound(monsterInstance, 1);
+}
+
+function startDungeonRound2() {
+    addLog('=== 第二轮：Boss战斗 ===', 'neutral');
+    
+    // 选择随机Boss
+    const bossKeys = Object.keys(window.dungeonBosses);
+    const randomBossKey = bossKeys[Math.floor(Math.random() * bossKeys.length)];
+    const boss = window.dungeonBosses[randomBossKey];
+    
+    // 根据玩家境界增强Boss属性
+    const enhancedBoss = enhanceBossByRealm(boss);
+    
+    // 创建Boss实例
+    const bossInstance = {
+        ...enhancedBoss,
+        currentHealth: enhancedBoss.health,
+        isDungeonBoss: true
+    };
+    
+    addLog(`副本Boss：${boss.name}出现了！`, 'negative');
+    addLog(`${boss.description}`, 'neutral');
+    addLog(`🩸 Boss战开始 - 你的生命值：${gameState.health}/${gameState.maxHealth} | ${boss.name}生命值：${bossInstance.currentHealth}/${bossInstance.health}`, 'neutral');
+    
+    // 开始Boss战斗
+    startDungeonCombatRound(bossInstance, 2);
+}
+
+function enhanceBossByRealm(boss) {
+    const enhancedBoss = { ...boss };
+    const playerRealm = gameState.realm;
+    
+    // 根据玩家境界增强Boss属性（降低增强倍数）
+    const realmMultiplier = 1 + playerRealm * 0.08; // 每个境界增强8%
+    
+    enhancedBoss.health = Math.floor(boss.health * realmMultiplier);
+    enhancedBoss.attack = Math.floor(boss.attack * realmMultiplier);
+    enhancedBoss.defense = Math.floor(boss.defense * realmMultiplier);
+    enhancedBoss.speed = Math.floor(boss.speed * realmMultiplier);
+    
+    return enhancedBoss;
+}
+
+function startDungeonCombatRound(enemy, round) {
+    // 检查玩家是否死亡
+    if (gameState.health <= 0) {
+        handleDungeonDefeat();
+        return;
+    }
+    
+    // 检查敌人是否死亡
+    if (enemy.currentHealth <= 0) {
+        handleDungeonRoundVictory(enemy, round);
+        return;
+    }
+    
+    // 创建战斗选项
+    const combatOptions = document.createElement('div');
+    combatOptions.className = 'combat-options';
+    combatOptions.innerHTML = `
+        <button onclick="dungeonPlayerAttack(${JSON.stringify(enemy).replace(/"/g, '&quot;')}, ${round})">攻击</button>
+        <button onclick="dungeonTryToFlee(${JSON.stringify(enemy).replace(/"/g, '&quot;')}, ${round})">逃跑</button>
+    `;
+    
+    elements.logContainer.appendChild(combatOptions);
+    elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
+}
+
+function dungeonPlayerAttack(enemy, round) {
+    // 移除战斗选项
+    const combatOptions = document.querySelector('.combat-options');
+    if (combatOptions) {
+        combatOptions.remove();
+    }
+    
+    // 玩家攻击逻辑（类似普通战斗但有特殊处理）
+    let damage = Math.max(1, gameState.attack - enemy.defense);
+    
+    // 添加伤害浮动
+    const variance = damage * window.combatSettings.playerDamageVariance;
+    damage = Math.floor(damage + (Math.random() * variance * 2 - variance));
+    
+    // 检查暴击
+    const critChance = window.combatSettings.criticalHitChance + (gameState.luck * window.combatSettings.luckImpactOnCrit);
+    const isCrit = Math.random() < critChance;
+    if (isCrit) {
+        damage = Math.floor(damage * window.combatSettings.criticalHitMultiplier);
+        addLog(`💥 暴击！你对${enemy.name}造成了${damage}点伤害！`, 'combat-log');
+    } else {
+        addLog(`⚔️ 你对${enemy.name}造成了${damage}点伤害。`, 'combat-log');
+    }
+    
+    // 检查技能触发
+    checkPlayerSkillTrigger(enemy, damage);
+    
+    enemy.currentHealth -= damage;
+    
+    // 显示双方生命值状态
+    addLog(`🩸 你的生命值：${gameState.health}/${gameState.maxHealth} | ${enemy.name}生命值：${Math.max(0, enemy.currentHealth)}/${enemy.health}`, 'neutral');
+    
+    // 检查敌人是否死亡
+    if (enemy.currentHealth <= 0) {
+        handleDungeonRoundVictory(enemy, round);
+        return;
+    }
+    
+    // 敌人反击
+    setTimeout(() => {
+        dungeonEnemyAttack(enemy, round);
+    }, 1000);
+}
+
+function dungeonEnemyAttack(enemy, round) {
+    let damage = Math.max(1, enemy.attack - gameState.defense);
+    
+    // 检查玩家的绝对防御效果
+    if (gameState.activeEffects) {
+        const absoluteDefense = gameState.activeEffects.find(effect => effect.type === 'absolute_defense');
+        if (absoluteDefense) {
+            damage = Math.min(damage, absoluteDefense.maxDamage);
+            absoluteDefense.duration--;
+            if (absoluteDefense.duration <= 0) {
+                gameState.activeEffects = gameState.activeEffects.filter(effect => effect !== absoluteDefense);
+                addLog('佛光护体效果消失了。', 'neutral');
+            }
+        }
+    }
+    
+    // Boss技能触发检查
+    if (enemy.isDungeonBoss && enemy.skillTriggerChance && Math.random() < enemy.skillTriggerChance) {
+        const skillEffect = window.dungeonBossSkills[enemy.skill];
+        if (skillEffect) {
+            damage = Math.floor(damage * skillEffect.damageMultiplier);
+            addLog(`🔥 ${enemy.name}使用了${enemy.skill}！`, 'combat-log');
+            
+            // 处理特殊效果
+            if (skillEffect.ignoreDefense) {
+                damage = enemy.attack;
+                addLog('攻击无视防御！', 'negative');
+            }
+            if (skillEffect.stunChance && Math.random() < skillEffect.stunChance) {
+                addLog('你被眩晕了！', 'negative');
+            }
+        }
+    }
+    
+    addLog(`🗡️ ${enemy.name}对你造成了${damage}点伤害。`, 'combat-log');
+    gameState.health -= damage;
+    
+    // 检查不灭金身复活
+    if (gameState.health <= 0 && gameState.reviveAvailable) {
+        gameState.health = gameState.maxHealth;
+        gameState.reviveAvailable = false;
+        addLog('💫 不灭金身激活！你满血复活了！', 'positive');
+    }
+    
+    // 显示双方生命值状态
+    addLog(`🩸 你的生命值：${Math.max(0, gameState.health)}/${gameState.maxHealth} | ${enemy.name}生命值：${Math.max(0, enemy.currentHealth)}/${enemy.health}`, 'neutral');
+    
+    updateUI();
+    
+    // 继续战斗
+    setTimeout(() => {
+        startDungeonCombatRound(enemy, round);
+    }, 1000);
+}
+
+function dungeonTryToFlee(enemy, round) {
+    // 移除战斗选项
+    const combatOptions = document.querySelector('.combat-options');
+    if (combatOptions) {
+        combatOptions.remove();
+    }
+    
+    // 副本中逃跑会直接失败
+    addLog('副本挑战中无法逃跑！', 'negative');
+    
+    // 敌人攻击
+    setTimeout(() => {
+        dungeonEnemyAttack(enemy, round);
+    }, 1000);
+}
+
+function handleDungeonRoundVictory(enemy, round) {
+    addLog(`🎉 你击败了${enemy.name}！`, 'positive');
+    
+    if (round === 1) {
+        // 第一轮胜利，恢复少量生命值
+        const healAmount = Math.floor(gameState.maxHealth * 0.2); // 恢复20%最大生命值
+        gameState.health = Math.min(gameState.maxHealth, gameState.health + healAmount);
+        addLog(`你恢复了${healAmount}点生命值。`, 'positive');
+        
+        updateUI();
+        
+        // 开始第二轮
+        setTimeout(() => {
+            startDungeonRound2();
+        }, 2000);
+    } else {
+        // Boss战胜利
+        handleDungeonVictory();
+    }
+}
+
+function handleDungeonVictory() {
+    addLog('🏆 副本挑战完成！', 'positive');
+    
+    // 50%概率获得传奇技能
+    if (Math.random() < 0.5) {
+        const legendarySkills = ['god_sword', 'buddha_light', 'immortal_body'];
+        const randomSkill = legendarySkills[Math.floor(Math.random() * legendarySkills.length)];
+        const skill = window.skillDatabase[randomSkill];
+        
+        // 检查是否已拥有该技能
+        if (!gameState.skills.includes(randomSkill)) {
+            gameState.skills.push(randomSkill);
+            addLog(`✨ 恭喜！你获得了传奇技能：${skill.name}！`, 'positive');
+            addLog(`${skill.description}`, 'neutral');
+        } else {
+            addLog('你已经拥有了这个传奇技能。', 'neutral');
+        }
+    } else {
+        addLog('这次没有获得传奇技能，继续努力吧！', 'neutral');
+    }
+    
+    // 重置副本状态
+    dungeonState.isInDungeon = false;
+    dungeonState.currentRound = 0;
+    isInCombat = false;
+    
+    updateUI();
+    updateSkillsDisplay();
+}
+
+function handleDungeonDefeat() {
+    addLog('💀 副本挑战失败！', 'negative');
+    addLog('你在副本中战败，即将进入轮回...', 'negative');
+    
+    // 重置副本状态
+    dungeonState.isInDungeon = false;
+    dungeonState.currentRound = 0;
+    isInCombat = false;
+    
+    // 触发轮回
+    setTimeout(() => {
+        gameOver();
+    }, 2000);
+}
+
+function checkPlayerSkillTrigger(enemy, baseDamage) {
+    // 检查玩家技能触发
+    gameState.skills.forEach(skillId => {
+        const skill = window.skillDatabase[skillId];
+        if (skill && Math.random() < skill.triggerChance) {
+            addLog(`✨ ${skill.message}`, 'positive');
+            
+            // 处理传奇技能
+            if (skill.type === 'legendary_attack') {
+                const handler = window.skillEffectHandlers[skill.type];
+                if (handler) {
+                    const result = handler(skill, gameState, enemy);
+                    if (result && result.type === 'multi_hit') {
+                        addLog(`战神剑连击${result.hits.length}次，总伤害${result.totalDamage}！`, 'positive');
+                        enemy.currentHealth -= result.totalDamage;
+                    }
+                }
+            } else if (skill.type === 'legendary_defense') {
+                const handler = window.skillEffectHandlers[skill.type];
+                if (handler) {
+                    gameState.activeEffects = gameState.activeEffects || [];
+                    handler(skill, gameState);
+                }
+            } else if (skill.type === 'legendary_revival') {
+                const handler = window.skillEffectHandlers[skill.type];
+                if (handler) {
+                    handler(skill, gameState);
+                }
+            }
+        }
+    });
 }

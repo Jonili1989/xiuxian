@@ -98,6 +98,80 @@ const realmBosses = {
     }
 };
 
+// 副本Boss数据
+const dungeonBosses = {
+    shadow_lord: {
+        name: "暗影领主",
+        health: 120,
+        attack: 25,
+        defense: 15,
+        speed: 12,
+        skill: "暗影突袭",
+        skillTriggerChance: 0.4, // 40%技能触发概率
+        tier: "boss",
+        description: "来自暗影位面的强大存在"
+    },
+    flame_emperor: {
+        name: "烈焰帝君",
+        health: 150,
+        attack: 30,
+        defense: 18,
+        speed: 10,
+        skill: "烈焰风暴",
+        skillTriggerChance: 0.35,
+        tier: "boss",
+        description: "掌控烈焰之力的帝王"
+    },
+    ice_queen: {
+        name: "寒冰女王",
+        health: 130,
+        attack: 22,
+        defense: 20,
+        speed: 8,
+        skill: "极寒冰封",
+        skillTriggerChance: 0.45,
+        tier: "boss",
+        description: "永恒寒冰的统治者"
+    },
+    thunder_king: {
+        name: "雷霆之王",
+        health: 140,
+        attack: 28,
+        defense: 16,
+        speed: 14,
+        skill: "雷霆审判",
+        skillTriggerChance: 0.38,
+        tier: "boss",
+        description: "掌控雷电之力的王者"
+    }
+};
+
+// 副本Boss技能效果
+const dungeonBossSkills = {
+    "暗影突袭": {
+        description: "瞬间移动并造成巨大伤害",
+        damageMultiplier: 2.0,
+        ignoreDefense: true
+    },
+    "烈焰风暴": {
+        description: "释放烈焰风暴，造成持续伤害",
+        damageMultiplier: 1.8,
+        burnDamage: 15,
+        burnDuration: 3
+    },
+    "极寒冰封": {
+        description: "冰封敌人，降低速度并造成伤害",
+        damageMultiplier: 1.6,
+        slowEffect: 0.5,
+        slowDuration: 2
+    },
+    "雷霆审判": {
+        description: "召唤雷霆审判，造成眩晕和巨大伤害",
+        damageMultiplier: 2.2,
+        stunChance: 0.6
+    }
+};
+
 // 按境界划分的技能池
 const skillPoolsByRealm = {
     0: ['power_strike', 'iron_skin'], // 练气期
@@ -215,6 +289,41 @@ const skillEffectHandlers = {
         }
         
         return { effects };
+    },
+    
+    // 传奇技能效果处理器
+    legendary_attack: (skill, player, enemy) => {
+        // 战神剑：造成5次连续伤害
+        const hits = [];
+        let totalDamage = 0;
+        for (let i = 0; i < 5; i++) {
+            const baseDamage = Math.max(1, player.attack - enemy.defense);
+            const variance = baseDamage * 0.2;
+            const damage = Math.floor(baseDamage + (Math.random() * variance * 2 - variance));
+            hits.push(damage);
+            totalDamage += damage;
+        }
+        return { type: 'multi_hit', hits, totalDamage };
+    },
+    
+    legendary_defense: (skill, player) => {
+        // 佛光护体：后续两回合只受到1点伤害
+        player.activeEffects = player.activeEffects || [];
+        player.activeEffects.push({
+            type: 'absolute_defense',
+            duration: 2,
+            maxDamage: 1
+        });
+        return { type: 'defense_buff', duration: 2 };
+    },
+    
+    legendary_revival: (skill, player) => {
+        // 不灭金身：战斗中可以满血复活一次
+        if (!player.reviveAvailable) {
+            player.reviveAvailable = true;
+            return { type: 'revival_ready' };
+        }
+        return { type: 'revival_already_active' };
     }
 };
 
@@ -821,7 +930,7 @@ const skillDatabase = {
         name: "力劈华山",
         type: "attack",
         description: "强力的攻击技能，造成150%伤害",
-        triggerChance: 0.25,
+        triggerChance: 0.30,
         effect: { damageMultiplier: 1.5 },
         message: "你使出力劈华山，造成了巨大伤害！"
     },
@@ -829,7 +938,7 @@ const skillDatabase = {
         name: "烈焰斩",
         type: "attack",
         description: "火焰攻击，造成额外灼烧伤害",
-        triggerChance: 0.25,
+        triggerChance: 0.30,
         effect: { damageMultiplier: 1.3, burnDamage: 10, burnDuration: 3 },
         message: "你的攻击带着烈焰，敌人被灼烧！"
     },
@@ -837,7 +946,7 @@ const skillDatabase = {
         name: "雷霆一击",
         type: "attack",
         description: "雷电攻击，有几率造成眩晕",
-        triggerChance: 0.25,
+        triggerChance: 0.30,
         effect: { damageMultiplier: 1.4, stunChance: 0.3 },
         message: "雷霆之力汇聚于你的攻击中！"
     },
@@ -845,7 +954,7 @@ const skillDatabase = {
         name: "风刃术",
         type: "attack",
         description: "风属性攻击，提高命中率",
-        triggerChance: 0.25,
+        triggerChance: 0.30,
         effect: { damageMultiplier: 1.2, hitBonus: 0.2 },
         message: "风刃呼啸而过，精准命中敌人！"
     },
@@ -855,7 +964,7 @@ const skillDatabase = {
         name: "铁布衫",
         type: "defense",
         description: "提升防御力，减少受到的伤害",
-        triggerChance: 0.25,
+        triggerChance: 0.30,
         effect: { defenseMultiplier: 1.5, duration: 3 },
         message: "你的皮肤变得坚硬如铁！"
     },
@@ -863,7 +972,7 @@ const skillDatabase = {
         name: "身法精通",
         type: "defense",
         description: "大幅提升闪避几率",
-        triggerChance: 0.25,
+        triggerChance: 0.30,
         effect: { dodgeBonus: 0.3, duration: 2 },
         message: "你的身法变得飘逸如风！"
     },
@@ -873,7 +982,7 @@ const skillDatabase = {
         name: "吸血术",
         type: "recovery",
         description: "攻击时恢复生命值",
-        triggerChance: 0.25,
+        triggerChance: 0.30,
         effect: { lifeStealRatio: 0.4 },
         message: "你吸取了敌人的生命力！"
     },
@@ -881,7 +990,7 @@ const skillDatabase = {
         name: "回春术",
         type: "recovery",
         description: "持续恢复生命值",
-        triggerChance: 0.25,
+        triggerChance: 0.30,
         effect: { healPerTurn: 15, duration: 4 },
         message: "生命之力在你体内流淌！"
     },
@@ -891,7 +1000,7 @@ const skillDatabase = {
         name: "狂暴",
         type: "buff",
         description: "提升攻击力但降低防御力",
-        triggerChance: 0.25,
+        triggerChance: 0.30,
         effect: { attackMultiplier: 1.8, defenseMultiplier: 0.7, duration: 3 },
         message: "你进入了狂暴状态！"
     },
@@ -899,7 +1008,7 @@ const skillDatabase = {
         name: "专注",
         type: "buff",
         description: "提升暴击几率和暴击伤害",
-        triggerChance: 0.25,
+        triggerChance: 0.30,
         effect: { critChanceBonus: 0.2, critMultiplierBonus: 0.5, duration: 3 },
         message: "你的注意力高度集中！"
     },
@@ -909,7 +1018,7 @@ const skillDatabase = {
         name: "反击",
         type: "special",
         description: "受到攻击时有几率反击",
-        triggerChance: 0.25,
+        triggerChance: 0.30,
         effect: { counterChance: 0.4, counterMultiplier: 1.2 },
         message: "你发动了反击！"
     },
@@ -917,9 +1026,35 @@ const skillDatabase = {
         name: "连击",
         type: "special",
         description: "有几率进行二次攻击",
-        triggerChance: 0.25,
+        triggerChance: 0.30,
         effect: { extraAttackChance: 0.5, extraAttackMultiplier: 0.8 },
         message: "你发动了连击！"
+    },
+    
+    // 副本挑战奖励技能
+    god_sword: {
+        name: "战神剑",
+        type: "legendary_attack",
+        description: "造成5次连续伤害，战斗中触发概率20%",
+        triggerChance: 0.20,
+        effect: { multiHitCount: 5, damageMultiplier: 0.8 },
+        message: "你施展战神剑，剑气纵横！"
+    },
+    buddha_light: {
+        name: "佛光护体",
+        type: "legendary_defense",
+        description: "后续两回合只收到1点伤害，触发概率20%",
+        triggerChance: 0.20,
+        effect: { absoluteDefense: true, duration: 2, maxDamage: 1 },
+        message: "佛光护体，万法不侵！"
+    },
+    immortal_body: {
+        name: "不灭金身",
+        type: "legendary_revival",
+        description: "战斗中40%概率触发，触发后本次妖兽战斗可以满血复活一次",
+        triggerChance: 0.40,
+        effect: { reviveOnce: true },
+        message: "不灭金身激活，死而复生！"
     }
 };
 
@@ -1117,6 +1252,8 @@ window.characterDefaults = characterDefaults;
 window.realmBreakthroughBonuses = realmBreakthroughBonuses;
 window.monsterDatabase = monsterDatabase;
 window.monsterSkillEffects = monsterSkillEffects;
+window.dungeonBosses = dungeonBosses;
+window.dungeonBossSkills = dungeonBossSkills;
 window.itemEffects = itemEffects;
 window.dailyEvents = dailyEvents;
 window.goodEvents = goodEvents;
