@@ -98,6 +98,126 @@ const realmBosses = {
     }
 };
 
+// 按境界划分的技能池
+const skillPoolsByRealm = {
+    0: ['power_strike', 'iron_skin'], // 练气期
+    1: ['flame_slash', 'dodge_master', 'life_steal'], // 筑基期
+    2: ['thunder_strike', 'regeneration', 'berserker'], // 金丹期
+    3: ['wind_blade', 'focus', 'counter_attack'], // 元婴期
+    4: ['double_strike'], // 化神期及以上
+    5: [], // 炼虚期
+    6: [], // 合体期
+    7: [], // 大乘期
+    8: [] // 渡劫期
+};
+
+// 技能效果处理器
+const skillEffectHandlers = {
+    attack: (skill, attacker, defender) => {
+        let damage = attacker.attack * (skill.effect.damageMultiplier || 1);
+        let effects = {};
+        
+        if (skill.effect.burnDamage) {
+            effects.burn = {
+                damage: skill.effect.burnDamage,
+                duration: skill.effect.burnDuration || 1
+            };
+        }
+        
+        if (skill.effect.stunChance && Math.random() < skill.effect.stunChance) {
+            effects.stun = { duration: 1 };
+        }
+        
+        return { damage, effects };
+    },
+    
+    defense: (skill, target) => {
+        let effects = {};
+        
+        if (skill.effect.defenseMultiplier) {
+            effects.defenseBoost = {
+                multiplier: skill.effect.defenseMultiplier,
+                duration: skill.effect.duration || 1
+            };
+        }
+        
+        if (skill.effect.dodgeBonus) {
+            effects.dodgeBoost = {
+                bonus: skill.effect.dodgeBonus,
+                duration: skill.effect.duration || 1
+            };
+        }
+        
+        return { effects };
+    },
+    
+    recovery: (skill, target) => {
+        let healing = 0;
+        let effects = {};
+        
+        if (skill.effect.lifeStealRatio) {
+            // 吸血效果在攻击时处理
+            effects.lifeSteal = { ratio: skill.effect.lifeStealRatio };
+        }
+        
+        if (skill.effect.healPerTurn) {
+            effects.regeneration = {
+                healPerTurn: skill.effect.healPerTurn,
+                duration: skill.effect.duration || 1
+            };
+        }
+        
+        return { healing, effects };
+    },
+    
+    buff: (skill, target) => {
+        let effects = {};
+        
+        if (skill.effect.attackMultiplier) {
+            effects.attackBoost = {
+                multiplier: skill.effect.attackMultiplier,
+                duration: skill.effect.duration || 1
+            };
+        }
+        
+        if (skill.effect.defenseMultiplier) {
+            effects.defenseBoost = {
+                multiplier: skill.effect.defenseMultiplier,
+                duration: skill.effect.duration || 1
+            };
+        }
+        
+        if (skill.effect.critChanceBonus) {
+            effects.critBoost = {
+                chanceBonus: skill.effect.critChanceBonus,
+                multiplierBonus: skill.effect.critMultiplierBonus || 0,
+                duration: skill.effect.duration || 1
+            };
+        }
+        
+        return { effects };
+    },
+    
+    special: (skill, attacker, defender) => {
+        let effects = {};
+        
+        if (skill.effect.counterChance) {
+            effects.counter = {
+                chance: skill.effect.counterChance,
+                multiplier: skill.effect.counterMultiplier || 1
+            };
+        }
+        
+        if (skill.effect.extraAttackChance && Math.random() < skill.effect.extraAttackChance) {
+            effects.extraAttack = {
+                multiplier: skill.effect.extraAttackMultiplier || 1
+            };
+        }
+        
+        return { effects };
+    }
+};
+
 // 角色默认属性
 const characterDefaults = {
     health: 100,
@@ -113,7 +233,9 @@ const characterDefaults = {
     actionPoints: 3,
     maxActionPoints: 3,
     mood: 100,
-    maxMood: 100
+    maxMood: 100,
+    skills: [], // 玩家拥有的技能列表
+    activeEffects: [] // 当前生效的技能效果
 };
 
 // 境界突破奖励
@@ -686,6 +808,115 @@ const restSettings = {
 };
 
 // 将所有数据暴露到全局作用域
+// 技能数据
+const skillDatabase = {
+    // 攻击类技能
+    power_strike: {
+        name: "力劈华山",
+        type: "attack",
+        description: "强力的攻击技能，造成150%伤害",
+        triggerChance: 0.15,
+        effect: { damageMultiplier: 1.5 },
+        message: "你使出力劈华山，造成了巨大伤害！"
+    },
+    flame_slash: {
+        name: "烈焰斩",
+        type: "attack",
+        description: "火焰攻击，造成额外灼烧伤害",
+        triggerChance: 0.12,
+        effect: { damageMultiplier: 1.3, burnDamage: 10, burnDuration: 3 },
+        message: "你的攻击带着烈焰，敌人被灼烧！"
+    },
+    thunder_strike: {
+        name: "雷霆一击",
+        type: "attack",
+        description: "雷电攻击，有几率造成眩晕",
+        triggerChance: 0.10,
+        effect: { damageMultiplier: 1.4, stunChance: 0.3 },
+        message: "雷霆之力汇聚于你的攻击中！"
+    },
+    wind_blade: {
+        name: "风刃术",
+        type: "attack",
+        description: "风属性攻击，提高命中率",
+        triggerChance: 0.18,
+        effect: { damageMultiplier: 1.2, hitBonus: 0.2 },
+        message: "风刃呼啸而过，精准命中敌人！"
+    },
+    
+    // 防御类技能
+    iron_skin: {
+        name: "铁布衫",
+        type: "defense",
+        description: "提升防御力，减少受到的伤害",
+        triggerChance: 0.20,
+        effect: { defenseMultiplier: 1.5, duration: 3 },
+        message: "你的皮肤变得坚硬如铁！"
+    },
+    dodge_master: {
+        name: "身法精通",
+        type: "defense",
+        description: "大幅提升闪避几率",
+        triggerChance: 0.15,
+        effect: { dodgeBonus: 0.3, duration: 2 },
+        message: "你的身法变得飘逸如风！"
+    },
+    
+    // 恢复类技能
+    life_steal: {
+        name: "吸血术",
+        type: "recovery",
+        description: "攻击时恢复生命值",
+        triggerChance: 0.12,
+        effect: { lifeStealRatio: 0.4 },
+        message: "你吸取了敌人的生命力！"
+    },
+    regeneration: {
+        name: "回春术",
+        type: "recovery",
+        description: "持续恢复生命值",
+        triggerChance: 0.08,
+        effect: { healPerTurn: 15, duration: 4 },
+        message: "生命之力在你体内流淌！"
+    },
+    
+    // 辅助类技能
+    berserker: {
+        name: "狂暴",
+        type: "buff",
+        description: "提升攻击力但降低防御力",
+        triggerChance: 0.10,
+        effect: { attackMultiplier: 1.8, defenseMultiplier: 0.7, duration: 3 },
+        message: "你进入了狂暴状态！"
+    },
+    focus: {
+        name: "专注",
+        type: "buff",
+        description: "提升暴击几率和暴击伤害",
+        triggerChance: 0.15,
+        effect: { critChanceBonus: 0.2, critMultiplierBonus: 0.5, duration: 3 },
+        message: "你的注意力高度集中！"
+    },
+    
+    // 特殊类技能
+    counter_attack: {
+        name: "反击",
+        type: "special",
+        description: "受到攻击时有几率反击",
+        triggerChance: 0.12,
+        effect: { counterChance: 0.4, counterMultiplier: 1.2 },
+        message: "你发动了反击！"
+    },
+    double_strike: {
+        name: "连击",
+        type: "special",
+        description: "有几率进行二次攻击",
+        triggerChance: 0.10,
+        effect: { extraAttackChance: 0.5, extraAttackMultiplier: 0.8 },
+        message: "你发动了连击！"
+    }
+};
+
 // 渡劫事件数据
 const tribulationEvents = [
     {
@@ -891,3 +1122,6 @@ window.combatSettings = combatSettings;
 window.cultivationSettings = cultivationSettings;
 window.explorationSettings = explorationSettings;
 window.restSettings = restSettings;
+window.skillDatabase = skillDatabase;
+window.skillPoolsByRealm = skillPoolsByRealm;
+window.skillEffectHandlers = skillEffectHandlers;
