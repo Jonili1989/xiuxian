@@ -111,7 +111,9 @@ const characterDefaults = {
     isGameStarted: false,
     day: 1,
     actionPoints: 3,
-    maxActionPoints: 3
+    maxActionPoints: 3,
+    mood: 100,
+    maxMood: 100
 };
 
 // 境界突破奖励
