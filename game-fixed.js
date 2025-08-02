@@ -113,6 +113,8 @@ function setupEventListeners() {
     
     // 结束今天按钮
     elements.endDayBtn.addEventListener('click', endDay);
+    
+
 }
 
 // 更新UI
