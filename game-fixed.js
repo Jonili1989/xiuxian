@@ -537,7 +537,7 @@ function checkRealmBreakthrough() {
     
     // 如果已经是最高境界，则不能再突破
     if (nextRealmIndex >= window.realmLevels.length) {
-        return;
+        return false;
     }
     
     // 如果修为达到当前境界上限，显示突破按钮
@@ -553,7 +553,11 @@ function checkRealmBreakthrough() {
         // 添加到日志容器
         elements.logContainer.appendChild(breakthroughBtn);
         elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
+        
+        return true; // 返回true表示可以突破
     }
+    
+    return false; // 返回false表示不能突破
 }
 
 // 执行境界突破 - 渡劫系统
@@ -657,6 +661,11 @@ function triggerTribulation() {
         addLog('突破失败，你需要继续修炼积累实力！', 'negative');
     }
     
+    // 尝试触发奇遇事件
+    if (window.adventureEventManager) {
+        window.adventureEventManager.triggerRandomEvent();
+    }
+    
     updateUI();
 }
 
@@ -747,7 +756,12 @@ function meditate() {
     }
     
     // 检查是否可以突破
-    checkRealmBreakthrough();
+    const canBreakthrough = checkRealmBreakthrough();
+    
+    // 只有在不能突破的情况下才触发奇遇事件
+    if (!canBreakthrough && window.adventureEventManager) {
+        window.adventureEventManager.triggerRandomEvent();
+    }
     
     // 更新UI
     updateUI();
@@ -792,6 +806,11 @@ function explore() {
         } else {
             addLog('你探索了一段时间，但没有发现什么特别的东西。', 'neutral');
         }
+    }
+    
+    // 尝试触发奇遇事件
+    if (window.adventureEventManager) {
+        window.adventureEventManager.triggerRandomEvent();
     }
     
     updateUI();
