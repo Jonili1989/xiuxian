@@ -2,15 +2,15 @@
 
 // 境界等级数据
 const realmLevels = [
-    { name: '练气', cap: 1000, dayLimit: 30, bossId: 'qi_boss' },
-    { name: '筑基', cap: 2500, dayLimit: 50, bossId: 'foundation_boss' },
-    { name: '金丹', cap: 6000, dayLimit: 80, bossId: 'golden_core_boss' },
-    { name: '元婴', cap: 15000, dayLimit: 120, bossId: 'nascent_soul_boss' },
-    { name: '化神', cap: 35000, dayLimit: 180, bossId: 'spirit_transformation_boss' },
-    { name: '炼虚', cap: 80000, dayLimit: 250, bossId: 'void_refinement_boss' },
-    { name: '合体', cap: 180000, dayLimit: 350, bossId: 'unity_boss' },
-    { name: '大乘', cap: 400000, dayLimit: 500, bossId: 'mahayana_boss' },
-    { name: '渡劫', cap: 1000000, dayLimit: 999, bossId: 'tribulation_boss' }
+    { name: '练气', cap: 100, dayLimit: 5, bossId: 'qi_boss' },
+    { name: '筑基', cap: 250, dayLimit: 10, bossId: 'foundation_boss' },
+    { name: '金丹', cap: 600, dayLimit: 18, bossId: 'golden_core_boss' },
+    { name: '元婴', cap: 1500, dayLimit: 30, bossId: 'nascent_soul_boss' },
+    { name: '化神', cap: 3500, dayLimit: 60, bossId: 'spirit_transformation_boss' },
+    { name: '炼虚', cap: 8000, dayLimit: 90, bossId: 'void_refinement_boss' },
+    { name: '合体', cap: 18000, dayLimit: 100, bossId: 'unity_boss' },
+    { name: '大乘', cap: 40000, dayLimit: 150, bossId: 'mahayana_boss' },
+    { name: '渡劫', cap: 80000, dayLimit: 300, bossId: 'tribulation_boss' }
 ];
 
 // 境界心魔数据
