@@ -172,8 +172,8 @@ class ReincarnationSystem {
         // 处理技能保留逻辑
         let retainedSkill = null;
         if (gameState.skills && gameState.skills.length > 0) {
-            // 25%概率保留一个已有技能
-            if (Math.random() < 0.25) {
+            // 40%概率保留一个已有技能
+            if (Math.random() < 0.40) {
                 const randomIndex = Math.floor(Math.random() * gameState.skills.length);
                 retainedSkill = gameState.skills[randomIndex];
                 const skillName = window.skillDatabase[retainedSkill]?.name || retainedSkill;

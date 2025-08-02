@@ -128,8 +128,8 @@ function setupEventListeners() {
 
 // 更新UI
 function updateUI() {
-    elements.health.textContent = gameState.health;
-    elements.maxHealth.textContent = gameState.maxHealth;
+    elements.health.textContent = Math.ceil(gameState.health);
+    elements.maxHealth.textContent = Math.ceil(gameState.maxHealth);
     elements.attack.textContent = gameState.attack;
     elements.defense.textContent = gameState.defense;
     elements.luck.textContent = gameState.luck;
@@ -303,11 +303,11 @@ function rest() {
     // 计算恢复量
     const minRecovery = window.restSettings.minHealthRecovery;
     const maxRecovery = window.restSettings.maxHealthRecovery;
-    const luckBonus = gameState.luck * window.restSettings.luckImpactOnRecovery;
+    const luckBonus = Math.ceil(gameState.luck * window.restSettings.luckImpactOnRecovery);
     
     const recoveryAmount = Math.floor(Math.random() * (maxRecovery - minRecovery + 1)) + minRecovery + luckBonus;
-    const oldHealth = gameState.health;
-    gameState.health = Math.min(gameState.health + recoveryAmount, gameState.maxHealth);
+    const oldHealth = Math.ceil(gameState.health);
+    gameState.health = Math.min(Math.ceil(gameState.health + recoveryAmount), gameState.maxHealth);
     const actualRecovery = gameState.health - oldHealth;
 
     // 恢复心情值
@@ -563,7 +563,7 @@ function bossAttackPlayer(boss) {
         finalDamage = Math.max(1, boss.attack - gameState.defense);
     }
     
-    gameState.health = Math.max(0, gameState.health - finalDamage);
+    gameState.health = Math.max(0, Math.ceil(gameState.health - finalDamage));
     
     if (useSkill && skill && window.monsterSkillEffects[skill]) {
         addLog(`${boss.name}的${skill}对你造成了${finalDamage}点伤害！`, 'negative');
@@ -1280,7 +1280,7 @@ function monsterAttack(monster) {
     }
     
     addLog(`${monster.name}攻击了你，造成了${damage}点伤害！`, 'negative');
-    gameState.health -= damage;
+    gameState.health = Math.ceil(gameState.health - damage);
     addLog(`你剩余生命值：${Math.max(0, gameState.health)}`, 'neutral');
     
     // 更新UI显示
@@ -1338,7 +1338,7 @@ function endCombat(monster) {
     const maxHeal = window.combatSettings.postCombatHealMax;
     const healAmount = Math.floor(Math.random() * (maxHeal - minHeal + 1)) + minHeal;
     
-    gameState.health = Math.min(gameState.health + healAmount, gameState.maxHealth);
+    gameState.health = Math.min(Math.ceil(gameState.health + healAmount), gameState.maxHealth);
     addLog(`战斗结束后，你恢复了${healAmount}点生命值。`, 'positive');
     
     // 重置战斗状态
@@ -1562,7 +1562,7 @@ function dungeonEnemyAttack(enemy, round) {
     }
     
     addLog(`🗡️ ${enemy.name}对你造成了${damage}点伤害。`, 'combat-log');
-    gameState.health -= damage;
+    gameState.health = Math.ceil(gameState.health - damage);
     
     // 检查不灭金身复活
     if (gameState.health <= 0 && gameState.reviveAvailable) {

@@ -844,7 +844,7 @@ const dailyEvents = [
         type: "positive",
         effect: (gameState) => {
             const healing = 15;
-            gameState.health = Math.min(gameState.health + healing, gameState.maxHealth);
+            gameState.health = Math.min(Math.ceil(gameState.health + healing), gameState.maxHealth);
             return `生命值+${healing}`;
         }
     },
