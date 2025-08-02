@@ -157,7 +157,29 @@ function updateUI() {
 function addLog(message, type = 'neutral') {
     const logEntry = document.createElement('div');
     logEntry.className = `log-entry ${type}`;
-    logEntry.textContent = message;
+    
+    // 检查是否为战斗相关的日志
+    const isCombatLog = message.includes('攻击') || message.includes('伤害') || message.includes('战斗') || 
+                       message.includes('击败') || message.includes('心魔') || message.includes('妖兽') || 
+                       message.includes('闪避') || message.includes('暴击') || message.includes('技能') ||
+                       message.includes('逃跑') || message.includes('胜利') || message.includes('失败');
+    
+    if (isCombatLog) {
+        logEntry.classList.add('combat-log');
+        // 添加战斗图标
+        const icon = document.createElement('span');
+        icon.className = 'combat-icon';
+        icon.innerHTML = '⚔️';
+        logEntry.appendChild(icon);
+        
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = message;
+        messageSpan.style.fontWeight = 'bold';
+        logEntry.appendChild(messageSpan);
+    } else {
+        logEntry.textContent = message;
+    }
+    
     elements.logContainer.appendChild(logEntry);
     elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
 }
