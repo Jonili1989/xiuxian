@@ -172,4 +172,79 @@ const normalEvents = [
     }
 ];
 
-export { dailyEvents, goodEvents, badEvents, normalEvents };
+// 渡劫事件 - 用于境界突破
+const tribulationEvents = [
+    {
+        text: '天雷滚滚，你在雷劫中感悟天道，成功突破！',
+        type: 'success',
+        successRate: 0.7,
+        effect: (gameState) => {
+            return '渡劫成功！境界提升！';
+        }
+    },
+    {
+        text: '心魔现世，你战胜了内心的恐惧，突破成功！',
+        type: 'success',
+        successRate: 0.6,
+        effect: (gameState) => {
+            return '心魔劫成功渡过！';
+        }
+    },
+    {
+        text: '天火降临，你在烈焰中淬炼肉身，成功突破！',
+        type: 'success',
+        successRate: 0.65,
+        effect: (gameState) => {
+            return '天火劫渡过成功！';
+        }
+    },
+    {
+        text: '风劫来袭，你在狂风中稳固道心，突破成功！',
+        type: 'success',
+        successRate: 0.75,
+        effect: (gameState) => {
+            return '风劫成功渡过！';
+        }
+    },
+    {
+        text: '雷劫太过猛烈，你受了重伤，突破失败！',
+        type: 'failure',
+        successRate: 0.3,
+        effect: (gameState) => {
+            gameState.health = Math.max(1, Math.floor(gameState.health * 0.5));
+            gameState.cultivation = Math.max(0, gameState.cultivation - 20);
+            return '渡劫失败！生命值减半，修为-20！';
+        }
+    },
+    {
+        text: '心魔太强，你迷失在幻境中，突破失败！',
+        type: 'failure',
+        successRate: 0.4,
+        effect: (gameState) => {
+            gameState.cultivation = Math.max(0, gameState.cultivation - 15);
+            gameState.attack = Math.max(1, gameState.attack - 2);
+            return '心魔劫失败！修为-15，攻击力-2！';
+        }
+    },
+    {
+        text: '天火焚身，你无法承受，突破失败！',
+        type: 'failure',
+        successRate: 0.35,
+        effect: (gameState) => {
+            gameState.health = Math.max(1, Math.floor(gameState.health * 0.6));
+            gameState.defense = Math.max(0, gameState.defense - 2);
+            return '天火劫失败！生命值大减，防御力-2！';
+        }
+    },
+    {
+        text: '狂风撕裂，你道心不稳，突破失败！',
+        type: 'failure',
+        successRate: 0.25,
+        effect: (gameState) => {
+            gameState.cultivation = Math.max(0, gameState.cultivation - 25);
+            return '风劫失败！修为大幅下降-25！';
+        }
+    }
+];
+
+export { dailyEvents, goodEvents, badEvents, normalEvents, tribulationEvents };

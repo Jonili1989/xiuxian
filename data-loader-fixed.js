@@ -2,16 +2,101 @@
 
 // 境界等级数据
 const realmLevels = [
-    { name: "练气", cap: 1000 },
-    { name: "筑基", cap: 3000 },
-    { name: "金丹", cap: 6000 },
-    { name: "元婴", cap: 10000 },
-    { name: "化神", cap: 15000 },
-    { name: "炼虚", cap: 21000 },
-    { name: "合体", cap: 28000 },
-    { name: "大乘", cap: 36000 },
-    { name: "渡劫", cap: 45000 }
+    { name: '练气', cap: 1000, dayLimit: 30, bossId: 'qi_boss' },
+    { name: '筑基', cap: 2500, dayLimit: 50, bossId: 'foundation_boss' },
+    { name: '金丹', cap: 6000, dayLimit: 80, bossId: 'golden_core_boss' },
+    { name: '元婴', cap: 15000, dayLimit: 120, bossId: 'nascent_soul_boss' },
+    { name: '化神', cap: 35000, dayLimit: 180, bossId: 'spirit_transformation_boss' },
+    { name: '炼虚', cap: 80000, dayLimit: 250, bossId: 'void_refinement_boss' },
+    { name: '合体', cap: 180000, dayLimit: 350, bossId: 'unity_boss' },
+    { name: '大乘', cap: 400000, dayLimit: 500, bossId: 'mahayana_boss' },
+    { name: '渡劫', cap: 1000000, dayLimit: 999, bossId: 'tribulation_boss' }
 ];
+
+// 境界心魔数据
+const realmBosses = {
+    qi_boss: {
+        name: '练气期心魔',
+        health: 80,
+        attack: 12,
+        defense: 8,
+        speed: 5,
+        skills: ['恐惧侵蚀', '意志动摇'],
+        description: '练气期修炼者内心的恐惧与不安'
+    },
+    foundation_boss: {
+        name: '筑基期心魔',
+        health: 150,
+        attack: 18,
+        defense: 12,
+        speed: 6,
+        skills: ['贪婪诱惑', '愤怒燃烧'],
+        description: '筑基期修炼者内心的贪婪与愤怒'
+    },
+    golden_core_boss: {
+        name: '金丹期心魔',
+        health: 280,
+        attack: 25,
+        defense: 18,
+        speed: 7,
+        skills: ['傲慢膨胀', '嫉妒腐蚀'],
+        description: '金丹期修炼者内心的傲慢与嫉妒'
+    },
+    nascent_soul_boss: {
+        name: '元婴期心魔',
+        health: 500,
+        attack: 35,
+        defense: 25,
+        speed: 8,
+        skills: ['绝望深渊', '仇恨烈焰'],
+        description: '元婴期修炼者内心的绝望与仇恨'
+    },
+    spirit_transformation_boss: {
+        name: '化神期心魔',
+        health: 900,
+        attack: 50,
+        defense: 35,
+        speed: 9,
+        skills: ['执念束缚', '痛苦折磨'],
+        description: '化神期修炼者内心的执念与痛苦'
+    },
+    void_refinement_boss: {
+        name: '炼虚期心魔',
+        health: 1600,
+        attack: 70,
+        defense: 50,
+        speed: 10,
+        skills: ['虚无吞噬', '迷失幻境'],
+        description: '炼虚期修炼者内心的虚无与迷失'
+    },
+    unity_boss: {
+        name: '合体期心魔',
+        health: 2800,
+        attack: 95,
+        defense: 70,
+        speed: 11,
+        skills: ['分裂人格', '混沌意识'],
+        description: '合体期修炼者内心的分裂与混沌'
+    },
+    mahayana_boss: {
+        name: '大乘期心魔',
+        health: 5000,
+        attack: 130,
+        defense: 95,
+        speed: 12,
+        skills: ['终极恐惧', '绝对绝望'],
+        description: '大乘期修炼者内心的终极恐惧'
+    },
+    tribulation_boss: {
+        name: '渡劫期心魔',
+        health: 8000,
+        attack: 180,
+        defense: 130,
+        speed: 15,
+        skills: ['心魔劫难', '道心崩坏'],
+        description: '渡劫期修炼者内心的终极考验'
+    }
+};
 
 // 角色默认属性
 const characterDefaults = {
@@ -133,6 +218,186 @@ const monsterSkillEffects = {
     "嗜血": {
         description: "吸取生命",
         lifeStealRatio: 0.3
+    },
+    // 境界boss技能
+    "灵气冲击": {
+        description: "释放强大的灵气攻击",
+        damageMultiplier: 1.5
+    },
+    "防御强化": {
+        description: "大幅提升防御力",
+        defenseMultiplier: 1.5
+    },
+    "基础爆发": {
+        description: "爆发全部力量进行攻击",
+        damageMultiplier: 1.8
+    },
+    "生命汲取": {
+        description: "攻击时大量恢复生命值",
+        lifeStealRatio: 0.5
+    },
+    "金丹之力": {
+        description: "金丹释放恐怖力量",
+        damageMultiplier: 2.0
+    },
+    "元气护盾": {
+        description: "元气形成强大护盾",
+        defenseMultiplier: 2.0
+    },
+    "元婴出窍": {
+        description: "元婴攻击，无视防御",
+        ignoreDefense: true,
+        damageMultiplier: 1.5
+    },
+    "灵魂攻击": {
+        description: "直接攻击灵魂",
+        damageMultiplier: 1.7,
+        stunChance: 0.4
+    },
+    "神识碾压": {
+        description: "神识碾压敌人心智",
+        damageMultiplier: 2.2,
+        stunChance: 0.5
+    },
+    "空间撕裂": {
+        description: "撕裂空间进行攻击",
+        damageMultiplier: 2.5
+    },
+    "虚空掌控": {
+        description: "掌控虚空之力",
+        damageMultiplier: 2.8,
+        ignoreDefense: true
+    },
+    "时空禁锢": {
+        description: "禁锢敌人于时空中",
+        immobilizeDuration: 2,
+        damageMultiplier: 1.5
+    },
+    "天地合一": {
+        description: "与天地合为一体",
+        damageMultiplier: 3.0,
+        defenseMultiplier: 2.5
+    },
+    "万法归宗": {
+        description: "万法归于一宗",
+        damageMultiplier: 3.5
+    },
+    "大乘神通": {
+        description: "大乘期的无上神通",
+        damageMultiplier: 4.0,
+        ignoreDefense: true
+    },
+    "仙帝威压": {
+        description: "仙帝的恐怖威压",
+        damageMultiplier: 2.0,
+        stunChance: 0.7
+    },
+    "天劫降临": {
+        description: "召唤天劫攻击敌人",
+        damageMultiplier: 5.0,
+        ignoreDefense: true
+    },
+    "道法自然": {
+        description: "道法自然，返璞归真",
+        damageMultiplier: 4.5,
+        lifeStealRatio: 0.8
+    },
+    // 心魔技能效果
+    "恐惧侵蚀": {
+        description: "恐惧侵蚀玩家心智，降低防御力",
+        defenseMultiplier: 0.8,
+        damageMultiplier: 1.2
+    },
+    "意志动摇": {
+        description: "动摇玩家意志，降低攻击力",
+        attackMultiplier: 0.9,
+        damageMultiplier: 1.1
+    },
+    "贪婪诱惑": {
+        description: "贪婪诱惑玩家，造成精神伤害",
+        damageMultiplier: 1.3,
+        stunChance: 0.2
+    },
+    "愤怒燃烧": {
+        description: "愤怒之火燃烧，造成持续伤害",
+        damageMultiplier: 1.4,
+        poisonDamage: 8,
+        poisonDuration: 2
+    },
+    "傲慢膨胀": {
+        description: "傲慢情绪膨胀，大幅提升攻击力",
+        damageMultiplier: 1.6,
+        defenseMultiplier: 1.2
+    },
+    "嫉妒腐蚀": {
+        description: "嫉妒腐蚀心灵，降低玩家各项能力",
+        damageMultiplier: 1.3,
+        attackMultiplier: 0.8,
+        defenseMultiplier: 0.8
+    },
+    "绝望深渊": {
+        description: "绝望将玩家拖入深渊",
+        damageMultiplier: 1.8,
+        stunChance: 0.3
+    },
+    "仇恨烈焰": {
+        description: "仇恨烈焰焚烧一切",
+        damageMultiplier: 2.0,
+        ignoreDefense: true
+    },
+    "执念束缚": {
+        description: "执念束缚玩家行动",
+        damageMultiplier: 1.5,
+        immobilizeDuration: 1
+    },
+    "痛苦折磨": {
+        description: "痛苦折磨玩家身心",
+        damageMultiplier: 1.7,
+        poisonDamage: 12,
+        poisonDuration: 3
+    },
+    "虚无吞噬": {
+        description: "虚无吞噬一切存在",
+        damageMultiplier: 2.2,
+        lifeStealRatio: 0.3
+    },
+    "迷失幻境": {
+        description: "迷失在幻境中无法自拔",
+        damageMultiplier: 1.6,
+        stunChance: 0.4
+    },
+    "分裂人格": {
+        description: "分裂人格造成混乱",
+        damageMultiplier: 2.5,
+        extraAttack: true
+    },
+    "混沌意识": {
+        description: "混沌意识扰乱心智",
+        damageMultiplier: 2.0,
+        attackMultiplier: 0.7,
+        defenseMultiplier: 0.7
+    },
+    "终极恐惧": {
+        description: "终极恐惧降临",
+        damageMultiplier: 3.0,
+        stunChance: 0.5
+    },
+    "绝对绝望": {
+        description: "绝对的绝望吞噬希望",
+        damageMultiplier: 2.8,
+        ignoreDefense: true,
+        lifeStealRatio: 0.4
+    },
+    "心魔劫难": {
+        description: "心魔劫难考验道心",
+        damageMultiplier: 3.5,
+        stunChance: 0.6
+    },
+    "道心崩坏": {
+        description: "道心崩坏，万念俱灰",
+        damageMultiplier: 4.0,
+        ignoreDefense: true,
+        attackMultiplier: 0.5
     }
 };
 
@@ -419,7 +684,196 @@ const restSettings = {
 };
 
 // 将所有数据暴露到全局作用域
+// 渡劫事件数据
+const tribulationEvents = [
+    {
+        text: '天雷滚滚，你在雷劫中感悟天道，成功突破！',
+        type: 'success',
+        successRate: 0.7,
+        effect: (gameState) => {
+            return '渡劫成功！境界提升！';
+        }
+    },
+    {
+        text: '心魔现世，你战胜了内心的恐惧，突破成功！',
+        type: 'success',
+        successRate: 0.6,
+        effect: (gameState) => {
+            return '心魔劫成功渡过！';
+        }
+    },
+    {
+        text: '天火降临，你在烈焰中淬炼肉身，成功突破！',
+        type: 'success',
+        successRate: 0.65,
+        effect: (gameState) => {
+            return '天火劫渡过成功！';
+        }
+    },
+    {
+        text: '风劫来袭，你在狂风中稳固道心，突破成功！',
+        type: 'success',
+        successRate: 0.75,
+        effect: (gameState) => {
+            return '风劫成功渡过！';
+        }
+    },
+    {
+        text: '雷劫太过猛烈，你受了重伤，突破失败！',
+        type: 'failure',
+        successRate: 0.3,
+        effect: (gameState) => {
+            gameState.health = Math.max(1, Math.floor(gameState.health * 0.5));
+            gameState.cultivation = Math.max(0, gameState.cultivation - 20);
+            return '渡劫失败！生命值减半，修为-20！';
+        }
+    },
+    {
+        text: '心魔太强，你迷失在幻境中，突破失败！',
+        type: 'failure',
+        successRate: 0.4,
+        effect: (gameState) => {
+            gameState.cultivation = Math.max(0, gameState.cultivation - 15);
+            gameState.attack = Math.max(1, gameState.attack - 2);
+            return '心魔劫失败！修为-15，攻击力-2！';
+        }
+    },
+    {
+        text: '天火焚身，你无法承受，突破失败！',
+        type: 'failure',
+        successRate: 0.35,
+        effect: (gameState) => {
+            gameState.health = Math.max(1, Math.floor(gameState.health * 0.6));
+            gameState.defense = Math.max(0, gameState.defense - 2);
+            return '天火劫失败！生命值大减，防御力-2！';
+        }
+    },
+    {
+        text: '狂风撕裂，你道心不稳，突破失败！',
+        type: 'failure',
+        successRate: 0.25,
+        effect: (gameState) => {
+            gameState.cultivation = Math.max(0, gameState.cultivation - 25);
+            return '风劫失败！修为大幅下降-25！';
+        }
+    }
+];
+
+// 突破奇遇事件数据
+const breakthroughEvents = [
+    // 正面事件 - 减弱心魔战斗力
+    {
+        text: '你在突破前偶遇一位高人指点，道心更加坚定！',
+        type: 'positive',
+        effect: {
+            demonPowerMultiplier: 0.8, // 心魔战斗力降低20%
+            description: '心魔战斗力降低20%'
+        }
+    },
+    {
+        text: '你发现了一株千年灵芝，服用后精神力大增！',
+        type: 'positive',
+        effect: {
+            demonPowerMultiplier: 0.75, // 心魔战斗力降低25%
+            description: '心魔战斗力降低25%'
+        }
+    },
+    {
+        text: '你在古洞中发现了前辈留下的心法秘籍，领悟颇深！',
+        type: 'positive',
+        effect: {
+            demonPowerMultiplier: 0.85, // 心魔战斗力降低15%
+            description: '心魔战斗力降低15%'
+        }
+    },
+    {
+        text: '你救助了一只受伤的仙鹤，它赠予你一枚定心丹！',
+        type: 'positive',
+        effect: {
+            demonPowerMultiplier: 0.7, // 心魔战斗力降低30%
+            description: '心魔战斗力降低30%'
+        }
+    },
+    {
+        text: '你在星空下冥想，感悟到了天地大道的奥秘！',
+        type: 'positive',
+        effect: {
+            demonPowerMultiplier: 0.8, // 心魔战斗力降低20%
+            description: '心魔战斗力降低20%'
+        }
+    },
+    
+    // 负面事件 - 增强心魔战斗力
+    {
+        text: '你在突破前遭遇了心爱之人的背叛，内心充满愤怒和痛苦！',
+        type: 'negative',
+        effect: {
+            demonPowerMultiplier: 1.3, // 心魔战斗力增加30%
+            description: '心魔战斗力增加30%'
+        }
+    },
+    {
+        text: '你想起了过去的失败和耻辱，负面情绪涌上心头！',
+        type: 'negative',
+        effect: {
+            demonPowerMultiplier: 1.25, // 心魔战斗力增加25%
+            description: '心魔战斗力增加25%'
+        }
+    },
+    {
+        text: '你突然想到了未完成的仇恨，杀意和怨念缠绕心头！',
+        type: 'negative',
+        effect: {
+            demonPowerMultiplier: 1.4, // 心魔战斗力增加40%
+            description: '心魔战斗力增加40%'
+        }
+    },
+    {
+        text: '你被贪婪、嫉妒、愤怒等负面情绪所困扰！',
+        type: 'negative',
+        effect: {
+            demonPowerMultiplier: 1.35, // 心魔战斗力增加35%
+            description: '心魔战斗力增加35%'
+        }
+    },
+    {
+        text: '你想起了曾经的恐惧和绝望，内心开始动摇！',
+        type: 'negative',
+        effect: {
+            demonPowerMultiplier: 1.2, // 心魔战斗力增加20%
+            description: '心魔战斗力增加20%'
+        }
+    },
+    
+    // 中性事件 - 轻微影响
+    {
+        text: '你在突破前保持平静，心境如水！',
+        type: 'neutral',
+        effect: {
+            demonPowerMultiplier: 1.0, // 心魔战斗力无变化
+            description: '心魔战斗力无变化'
+        }
+    },
+    {
+        text: '你回忆起师父的教诲，心中略有波澜！',
+        type: 'neutral',
+        effect: {
+            demonPowerMultiplier: 0.95, // 心魔战斗力降低5%
+            description: '心魔战斗力降低5%'
+        }
+    },
+    {
+        text: '你想起了修炼路上的点点滴滴，心情复杂！',
+        type: 'neutral',
+        effect: {
+            demonPowerMultiplier: 1.05, // 心魔战斗力增加5%
+            description: '心魔战斗力增加5%'
+        }
+    }
+];
+
 window.realmLevels = realmLevels;
+window.realmBosses = realmBosses;
 window.characterDefaults = characterDefaults;
 window.realmBreakthroughBonuses = realmBreakthroughBonuses;
 window.monsterDatabase = monsterDatabase;
@@ -429,6 +883,8 @@ window.dailyEvents = dailyEvents;
 window.goodEvents = goodEvents;
 window.badEvents = badEvents;
 window.normalEvents = normalEvents;
+window.tribulationEvents = tribulationEvents;
+window.breakthroughEvents = breakthroughEvents;
 window.combatSettings = combatSettings;
 window.cultivationSettings = cultivationSettings;
 window.explorationSettings = explorationSettings;

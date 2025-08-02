@@ -1,7 +1,9 @@
 // 轮回系统
 class ReincarnationSystem {
     constructor() {
-        this.reincarnationPoints = 0;
+        this.totalReincarnationPoints = 0; // 累积的轮回点
+        this.currentReincarnationPoints = 0; // 当前可用的轮回点
+        this.reincarnationCount = 0; // 轮回次数计数器
         this.isInReincarnation = false;
         this.tempStats = {
             attack: 0,
@@ -15,41 +17,38 @@ class ReincarnationSystem {
         };
     }
 
-    // 计算轮回点数
+    // 根据轮回次数计算轮回点数
     calculateReincarnationPoints(gameState) {
-        let points = 0;
-        
-        // 基础点数：根据天数
-        points += Math.floor(gameState.day / 5);
-        
-        // 修为点数：根据修为等级
-        points += Math.floor(gameState.cultivation / 100);
-        
-        // 境界点数：根据境界等级
-        points += gameState.realm * 2;
-        
-        // 最低保证1点
-        return Math.max(1, points);
+        // 每次轮回获得的点数等于轮回次数
+        // 第一次轮回1点，第二次轮回2点，第三次轮回3点，以此类推
+        this.reincarnationCount += 1;
+        return this.reincarnationCount;
     }
 
     // 开始轮回
     startReincarnation(gameState) {
-        this.reincarnationPoints = this.calculateReincarnationPoints(gameState);
+        // 计算本次轮回获得的点数
+        const newPoints = this.calculateReincarnationPoints(gameState);
+        
+        // 累积轮回点
+        this.totalReincarnationPoints += newPoints;
+        this.currentReincarnationPoints = this.totalReincarnationPoints;
+        
         this.isInReincarnation = true;
         
-        // 生成新的随机基础属性
-        this.tempStats.attack = Math.max(1, window.characterDefaults.attack + Math.floor(Math.random() * 5) - 2);
-        this.tempStats.defense = Math.max(1, window.characterDefaults.defense + Math.floor(Math.random() * 5) - 2);
-        this.tempStats.luck = Math.max(1, Math.min(window.characterDefaults.maxLuck, window.characterDefaults.luck + Math.floor(Math.random() * 3) - 1));
+        // 使用固定的默认基础属性
+        this.tempStats.attack = window.characterDefaults.attack;
+        this.tempStats.defense = window.characterDefaults.defense;
+        this.tempStats.luck = window.characterDefaults.luck;
         
         // 重置分配点数
         this.allocatedPoints = { attack: 0, defense: 0, luck: 0 };
         
-        this.showReincarnationUI();
+        this.showReincarnationUI(newPoints);
     }
 
     // 显示轮回界面
-    showReincarnationUI() {
+    showReincarnationUI(newPoints) {
         // 隐藏游戏主界面（隐藏整个body的内容，除了轮回界面）
         const bodyChildren = document.body.children;
         for (let i = 0; i < bodyChildren.length; i++) {
@@ -66,7 +65,10 @@ class ReincarnationSystem {
             <div class="reincarnation-panel">
                 <h2>轮回重生</h2>
                 <p>你已死亡，但可以通过轮回获得新生！</p>
-                <p>可用轮回点: <span id="available-points">${this.reincarnationPoints}</span></p>
+                <p>第 <span style="color: #e65100; font-weight: bold;">${this.reincarnationCount}</span> 次轮回</p>
+                <p>本次轮回获得: <span style="color: #2e7d32; font-weight: bold;">${newPoints}</span> 轮回点</p>
+                <p>累积轮回点: <span style="color: #1976d2; font-weight: bold;">${this.totalReincarnationPoints}</span></p>
+                <p>可用轮回点: <span id="available-points">${this.currentReincarnationPoints}</span></p>
                 
                 <div class="stat-allocation">
                     <div class="stat-row">
@@ -104,7 +106,7 @@ class ReincarnationSystem {
 
     // 调整属性点
     adjustStat(statType, change) {
-        if (change > 0 && this.reincarnationPoints <= 0) {
+        if (change > 0 && this.currentReincarnationPoints <= 0) {
             return; // 没有可用点数
         }
         
@@ -121,7 +123,7 @@ class ReincarnationSystem {
         }
         
         this.allocatedPoints[statType] += change;
-        this.reincarnationPoints -= change;
+        this.currentReincarnationPoints -= change;
         
         this.updateUI();
     }
@@ -129,14 +131,14 @@ class ReincarnationSystem {
     // 重置分配
     resetAllocation() {
         const totalAllocated = this.allocatedPoints.attack + this.allocatedPoints.defense + this.allocatedPoints.luck;
-        this.reincarnationPoints += totalAllocated;
+        this.currentReincarnationPoints += totalAllocated;
         this.allocatedPoints = { attack: 0, defense: 0, luck: 0 };
         this.updateUI();
     }
 
     // 更新轮回界面
     updateUI() {
-        document.getElementById('available-points').textContent = this.reincarnationPoints;
+        document.getElementById('available-points').textContent = this.currentReincarnationPoints;
         document.getElementById('temp-attack').textContent = this.tempStats.attack + this.allocatedPoints.attack;
         document.getElementById('temp-defense').textContent = this.tempStats.defense + this.allocatedPoints.defense;
         document.getElementById('temp-luck').textContent = this.tempStats.luck + this.allocatedPoints.luck;
@@ -145,12 +147,12 @@ class ReincarnationSystem {
         document.getElementById('luck-allocated').textContent = this.allocatedPoints.luck;
         
         // 更新按钮状态
-        document.getElementById('attack-plus').disabled = this.reincarnationPoints <= 0;
-        document.getElementById('defense-plus').disabled = this.reincarnationPoints <= 0;
+        document.getElementById('attack-plus').disabled = this.currentReincarnationPoints <= 0;
+        document.getElementById('defense-plus').disabled = this.currentReincarnationPoints <= 0;
         
         // 幸运值加号按钮：检查点数和最大值限制
         const currentLuck = this.tempStats.luck + this.allocatedPoints.luck;
-        document.getElementById('luck-plus').disabled = this.reincarnationPoints <= 0 || currentLuck >= window.characterDefaults.maxLuck;
+        document.getElementById('luck-plus').disabled = this.currentReincarnationPoints <= 0 || currentLuck >= window.characterDefaults.maxLuck;
         
         document.getElementById('attack-minus').disabled = this.allocatedPoints.attack <= 0;
         document.getElementById('defense-minus').disabled = this.allocatedPoints.defense <= 0;
@@ -164,12 +166,16 @@ class ReincarnationSystem {
         gameState.defense = this.tempStats.defense + this.allocatedPoints.defense;
         gameState.luck = this.tempStats.luck + this.allocatedPoints.luck;
         
+        // 保留未使用的轮回点
+        this.totalReincarnationPoints = this.currentReincarnationPoints;
+        
         // 重置游戏状态
         gameState.health = gameState.maxHealth;
         gameState.day = 1;
         gameState.actionPoints = gameState.maxActionPoints;
         gameState.cultivation = 0;
         gameState.realm = 0;
+        gameState.realmStartDay = 1; // 重置境界开始天数
         
         // 隐藏轮回界面
         document.getElementById('reincarnation-ui').remove();
@@ -190,7 +196,11 @@ class ReincarnationSystem {
         updateUI();
         
         // 添加轮回日志
-        addLog(`你已轮回重生！新的属性 - 攻击力: ${gameState.attack}, 防御力: ${gameState.defense}, 幸运值: ${gameState.luck}`, 'good');
+        const remainingPoints = this.totalReincarnationPoints;
+        addLog(`【第${this.reincarnationCount}次轮回】你已轮回重生！新的属性 - 攻击力: ${gameState.attack}, 防御力: ${gameState.defense}, 幸运值: ${gameState.luck}`, 'good');
+        if (remainingPoints > 0) {
+            addLog(`剩余轮回点: ${remainingPoints}，将在下次轮回时继续累积。`, 'neutral');
+        }
     }
 }
 

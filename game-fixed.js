@@ -44,6 +44,7 @@ const elements = {
     cultivationCap: document.getElementById('cultivation-cap'),
     cultivationBar: document.getElementById('cultivation-bar'),
     realm: document.getElementById('realm'),
+    realmCountdown: document.getElementById('realm-countdown'),
     healthBar: document.getElementById('health-bar'),
     actionBar: document.getElementById('action-bar'),
     actionPoints: document.getElementById('action-points'),
@@ -67,6 +68,7 @@ function initGame() {
     gameState.cultivation = 0;
     gameState.realm = 0;
     gameState.day = 1;
+    gameState.realmStartDay = 1; // 记录当前境界开始的天数
     gameState.actionPoints = gameState.maxActionPoints;
 
     // 显示游戏统计和事件日志
@@ -123,6 +125,15 @@ function updateUI() {
     const currentRealm = window.realmLevels[gameState.realm];
     elements.realm.textContent = currentRealm.name;
     elements.cultivationCap.textContent = currentRealm.cap;
+
+    // 更新境界倒计时
+    if (gameState.realmStartDay && currentRealm.dayLimit) {
+        const daysInCurrentRealm = gameState.day - gameState.realmStartDay + 1;
+        const remainingDays = currentRealm.dayLimit - daysInCurrentRealm;
+        elements.realmCountdown.textContent = Math.max(0, remainingDays);
+    } else {
+        elements.realmCountdown.textContent = currentRealm.dayLimit || 30;
+    }
 
     // 更新进度条
     const healthPercent = (gameState.health / gameState.maxHealth) * 100;
@@ -215,11 +226,245 @@ function endDay() {
     gameState.day++;
     gameState.actionPoints = gameState.maxActionPoints;
     
+    // 检查境界天数限制
+    const currentRealm = window.realmLevels[gameState.realm];
+    const daysInCurrentRealm = gameState.day - gameState.realmStartDay;
+    
+    if (daysInCurrentRealm >= currentRealm.dayLimit) {
+        // 触发境界boss战斗
+        triggerRealmBossFight();
+        return; // 不继续执行其他逻辑
+    }
+    
     // 处理每日事件
     handleDailyEvent();
     
     addLog(`第${gameState.day}天开始了，你有${gameState.actionPoints}点行动力。`, 'neutral');
     updateUI();
+}
+
+// 触发境界心魔战斗（强制触发）
+function triggerRealmBossFight() {
+    const currentRealm = window.realmLevels[gameState.realm];
+    
+    addLog(`【强制渡劫】你在${currentRealm.name}期已经修炼了${currentRealm.dayLimit}天，天劫降临，必须立即突破！`, 'negative');
+    addLog('由于时间紧迫，你的内心更加不安，心魔的力量因此增强了50%！', 'bad');
+    
+    // 设置强制触发时的心魔战斗力增强50%
+    window.heartDemonPowerMultiplier = 1.5;
+    
+    // 触发突破奇遇事件（但心魔已经增强了50%）
+    triggerBreakthroughEventForced();
+}
+
+function triggerBreakthroughEventForced() {
+    // 随机选择一个突破奇遇事件
+    const randomEvent = window.breakthroughEvents[Math.floor(Math.random() * window.breakthroughEvents.length)];
+    
+    // 在已有50%增强基础上，再应用事件效果
+    const eventMultiplier = randomEvent.effect.demonPowerMultiplier;
+    window.heartDemonPowerMultiplier *= eventMultiplier;
+    
+    // 记录事件结果
+    addLog(randomEvent.text, randomEvent.type);
+    
+    // 显示最终的心魔战斗力变化
+    const totalIncrease = ((window.heartDemonPowerMultiplier - 1) * 100).toFixed(0);
+    addLog(`心魔的最终战斗力增强了 ${totalIncrease}%！`, 'bad');
+    
+    // 延迟一秒后触发心魔战斗
+    setTimeout(() => {
+        addLog('内心的心魔在天劫的催化下变得更加强大，最终的考验开始了！', 'negative');
+        triggerHeartDemonFight();
+    }, 1000);
+}
+
+// 开始心魔战斗
+function startBossFight() {
+    if (!currentBoss) {
+        addLog('错误：没有找到心魔数据！', 'bad');
+        return;
+    }
+    
+    addLog(`\n=== 心魔战斗开始 ===`, 'neutral');
+    addLog(`你的状态：生命值 ${gameState.health}/${gameState.maxHealth}，攻击力 ${gameState.attack}，防御力 ${gameState.defense}`, 'neutral');
+    addLog(`${currentBoss.name}状态：生命值 ${currentBoss.health}/${currentBoss.maxHealth}`, 'neutral');
+    
+    // 开始战斗回合
+    startBossCombatRound(currentBoss);
+}
+
+// boss战斗回合
+function startBossCombatRound(boss) {
+    if (gameState.health <= 0) {
+        // 玩家死亡，战斗失败
+        handleBossDefeat();
+        return;
+    }
+    
+    if (boss.health <= 0) {
+        // boss死亡，战斗胜利
+        handleBossVictory(boss);
+        return;
+    }
+    
+    // 显示当前状态
+    addLog(`你的生命值：${gameState.health}/${gameState.maxHealth}`, 'neutral');
+    addLog(`${boss.name}的生命值：${boss.health}/${boss.maxHealth}`, 'neutral');
+    
+    // 创建战斗选项
+    const combatContainer = document.createElement('div');
+    combatContainer.className = 'combat-options';
+    
+    const attackBtn = document.createElement('button');
+    attackBtn.textContent = '攻击';
+    attackBtn.addEventListener('click', () => {
+        combatContainer.remove();
+        playerAttackBoss(boss);
+    });
+    
+    const fleeBtn = document.createElement('button');
+    fleeBtn.textContent = '逃跑（失败）';
+    fleeBtn.addEventListener('click', () => {
+        combatContainer.remove();
+        addLog('你试图逃跑，但境界试炼无法逃避！', 'negative');
+        handleBossDefeat();
+    });
+    
+    combatContainer.appendChild(attackBtn);
+    combatContainer.appendChild(fleeBtn);
+    elements.logContainer.appendChild(combatContainer);
+    elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
+}
+
+// 玩家攻击boss
+function playerAttackBoss(boss) {
+    const baseDamage = Math.max(1, gameState.attack - boss.defense);
+    const variance = baseDamage * 0.2;
+    const damage = Math.floor(baseDamage + (Math.random() * variance * 2 - variance));
+    
+    // 检查暴击
+    const critChance = 0.1 + (gameState.luck * 0.01);
+    const isCrit = Math.random() < critChance;
+    const finalDamage = isCrit ? Math.floor(damage * 1.5) : damage;
+    
+    boss.health = Math.max(0, boss.health - finalDamage);
+    
+    if (isCrit) {
+        addLog(`你发动暴击攻击，对${boss.name}造成了${finalDamage}点伤害！`, 'positive');
+    } else {
+        addLog(`你攻击${boss.name}，造成了${finalDamage}点伤害。`, 'neutral');
+    }
+    
+    // boss反击
+    if (boss.health > 0) {
+        setTimeout(() => bossAttackPlayer(boss), 1000);
+    } else {
+        setTimeout(() => startBossCombatRound(boss), 1000);
+    }
+}
+
+// boss攻击玩家
+function bossAttackPlayer(boss) {
+    // boss可能使用技能
+    const useSkill = Math.random() < 0.4 && boss.skills.length > 0;
+    let skill = null;
+    let finalDamage;
+    
+    if (useSkill) {
+        skill = boss.skills[Math.floor(Math.random() * boss.skills.length)];
+        const skillEffect = window.monsterSkillEffects[skill];
+        
+        if (skillEffect) {
+            addLog(`${boss.name}使用了技能：${skill}！`, 'negative');
+            
+            let baseDamage = boss.attack;
+            
+            // 应用技能效果
+            if (skillEffect.damageMultiplier) {
+                baseDamage = Math.floor(baseDamage * skillEffect.damageMultiplier);
+            }
+            
+            if (skillEffect.ignoreDefense) {
+                // 无视防御
+                finalDamage = baseDamage;
+            } else {
+                finalDamage = Math.max(1, baseDamage - gameState.defense);
+            }
+            
+            // 检查眩晕
+            if (skillEffect.stunChance && Math.random() < skillEffect.stunChance) {
+                addLog('你被眩晕了！', 'negative');
+            }
+            
+            // 生命偷取
+            if (skillEffect.lifeStealRatio) {
+                const healAmount = Math.floor(finalDamage * skillEffect.lifeStealRatio);
+                boss.health = Math.min(boss.maxHealth, boss.health + healAmount);
+                addLog(`${boss.name}恢复了${healAmount}点生命值！`, 'negative');
+            }
+        } else {
+            finalDamage = Math.max(1, boss.attack - gameState.defense);
+        }
+    } else {
+        finalDamage = Math.max(1, boss.attack - gameState.defense);
+    }
+    
+    gameState.health = Math.max(0, gameState.health - finalDamage);
+    
+    if (useSkill && skill && window.monsterSkillEffects[skill]) {
+        addLog(`${boss.name}的${skill}对你造成了${finalDamage}点伤害！`, 'negative');
+    } else {
+        addLog(`${boss.name}攻击你，造成了${finalDamage}点伤害。`, 'negative');
+    }
+    
+    updateUI();
+    
+    setTimeout(() => startBossCombatRound(boss), 1000);
+}
+
+// 处理boss战斗胜利
+function handleBossVictory(boss) {
+    addLog(`【胜利】你成功击败了${boss.name}！`, 'positive');
+    addLog('恭喜你战胜了内心的心魔，渡劫成功！', 'positive');
+    
+    // 增加基础属性值（根据境界等级）
+    const realmLevel = gameState.realm;
+    const attributeBonus = Math.max(1, Math.floor(realmLevel * 0.5) + 1);
+    
+    gameState.maxHealth += attributeBonus * 2;
+    gameState.health = gameState.maxHealth; // 恢复满血
+    gameState.attack += attributeBonus;
+    gameState.defense += attributeBonus;
+    gameState.luck += Math.floor(attributeBonus / 2);
+    
+    addLog(`突破成功！获得属性提升：生命值+${attributeBonus * 2}, 攻击力+${attributeBonus}, 防御力+${attributeBonus}, 幸运+${Math.floor(attributeBonus / 2)}`, 'positive');
+    
+    // 进入下一个境界
+    if (gameState.realm + 1 < window.realmLevels.length) {
+        actualBreakthrough();
+    } else {
+        addLog('你已经达到了修仙的最高境界！', 'positive');
+        updateUI();
+    }
+    
+    // 继续正常的每日事件
+    handleDailyEvent();
+    addLog(`第${gameState.day}天开始了，你有${gameState.actionPoints}点行动力。`, 'neutral');
+}
+
+// 处理boss战斗失败
+function handleBossDefeat() {
+    addLog('【失败】你在境界试炼中失败了...', 'negative');
+    addLog('你的修为不足以通过这个境界的考验，必须轮回重生！', 'negative');
+    
+    // 触发轮回
+    if (window.triggerReincarnation) {
+        window.triggerReincarnation();
+    } else {
+        // 如果轮回系统不可用，直接游戏结束
+        gameOver();
+    }
 }
 
 // 处理每日事件
@@ -263,49 +508,131 @@ function checkRealmBreakthrough() {
     }
 }
 
-// 执行境界突破
+// 执行境界突破 - 渡劫系统
 function performBreakthrough() {
     // 移除所有突破按钮
     document.querySelectorAll('.breakthrough-btn').forEach(btn => btn.remove());
     
-    // 计算突破成功率
-    const baseChance = window.cultivationSettings.breakthroughBaseChance;
-    const luckBonus = gameState.luck * 0.02; // 每点幸运增加2%成功率
-    const successChance = Math.min(baseChance + luckBonus, 0.95); // 最高95%成功率
+    addLog('你开始尝试突破，即将面临内心的考验...', 'neutral');
     
-    // 随机决定是否成功
-    const isSuccess = Math.random() < successChance;
+    // 触发突破奇遇事件
+    triggerBreakthroughEvent();
+}
+
+// 心魔战斗力倍数（全局变量）
+window.heartDemonPowerMultiplier = 1.0;
+
+function triggerBreakthroughEvent() {
+    // 重置心魔战斗力倍数
+    window.heartDemonPowerMultiplier = 1.0;
     
-    if (isSuccess) {
-        // 突破成功
-        gameState.realm++;
-        const newRealm = window.realmLevels[gameState.realm];
-        
-        // 应用突破奖励
-        gameState.maxHealth += window.realmBreakthroughBonuses.health;
-        gameState.health = gameState.maxHealth; // 突破后恢复满生命
-        gameState.attack += window.realmBreakthroughBonuses.attack;
-        gameState.defense += window.realmBreakthroughBonuses.defense;
-        gameState.maxActionPoints += window.realmBreakthroughBonuses.actionPoints;
-        gameState.actionPoints = gameState.maxActionPoints; // 突破后恢复满行动力
-        
-        // 重置修为为0
-        gameState.cultivation = 0;
-        
-        addLog(`恭喜！你成功突破到了${newRealm.name}境界！`, 'positive');
-        addLog('你感到体内灵力充盈，各项属性得到了提升！', 'positive');
+    // 随机选择一个突破奇遇事件
+    const randomEvent = window.breakthroughEvents[Math.floor(Math.random() * window.breakthroughEvents.length)];
+    
+    // 应用事件效果（修改心魔战斗力倍数）
+    window.heartDemonPowerMultiplier = randomEvent.effect.demonPowerMultiplier;
+    
+    // 记录事件结果
+    addLog(randomEvent.text, randomEvent.type);
+    
+    // 根据事件结果显示心魔战斗力变化
+    if (window.heartDemonPowerMultiplier > 1.0) {
+        addLog(`心魔的力量因此增强了 ${((window.heartDemonPowerMultiplier - 1) * 100).toFixed(0)}%！`, 'bad');
+    } else if (window.heartDemonPowerMultiplier < 1.0) {
+        addLog(`心魔的力量因此减弱了 ${((1 - window.heartDemonPowerMultiplier) * 100).toFixed(0)}%！`, 'good');
     } else {
-        // 突破失败
-        const penaltyRatio = window.cultivationSettings.failedBreakthroughPenalty;
-        gameState.cultivation = Math.floor(gameState.cultivation * penaltyRatio);
-        
-        // 生命值惩罚
-        const healthPenalty = window.cultivationSettings.breakthroughHealthPenalty;
-        gameState.health = Math.max(1, gameState.health - healthPenalty);
-        
-        addLog('突破失败！你感到一阵心悸，修为受到了损失。', 'negative');
-        addLog(`你损失了一些修为和${healthPenalty}点生命值。`, 'negative');
+        addLog('心魔的力量没有发生变化。', 'neutral');
     }
+    
+    // 延迟一秒后触发心魔战斗
+    setTimeout(() => {
+        addLog('内心的心魔开始显现，准备迎接最终的考验！', 'neutral');
+        triggerHeartDemonFight();
+    }, 1000);
+}
+
+function triggerHeartDemonFight() {
+    // 获取当前境界对应的心魔数据
+    const currentRealmData = window.realmLevels[gameState.realm];
+    const realmKey = currentRealmData.bossId;
+    const heartDemonData = window.realmBosses[realmKey];
+    
+    if (!heartDemonData) {
+        addLog('无法找到对应的心魔数据！', 'bad');
+        return;
+    }
+    
+    // 创建心魔实例，应用战斗力倍数
+    const heartDemon = {
+        name: heartDemonData.name,
+        health: Math.floor(heartDemonData.health * window.heartDemonPowerMultiplier),
+        maxHealth: Math.floor(heartDemonData.health * window.heartDemonPowerMultiplier),
+        attack: Math.floor(heartDemonData.attack * window.heartDemonPowerMultiplier),
+        defense: Math.floor(heartDemonData.defense * window.heartDemonPowerMultiplier),
+        speed: heartDemonData.speed,
+        skills: heartDemonData.skills,
+        description: heartDemonData.description
+    };
+    
+    // 设置当前boss为心魔
+    currentBoss = heartDemon;
+    
+    // 显示心魔信息
+    addLog(`${heartDemon.name}出现了！`, 'bad');
+    addLog(`${heartDemon.description}`, 'neutral');
+    addLog(`生命值: ${heartDemon.health}, 攻击力: ${heartDemon.attack}, 防御力: ${heartDemon.defense}`, 'neutral');
+    
+    // 开始战斗
+    startBossFight();
+}
+
+// 渡劫系统
+function triggerTribulation() {
+    // 随机选择一个渡劫事件
+    const tribulationEvent = window.tribulationEvents[Math.floor(Math.random() * window.tribulationEvents.length)];
+    
+    addLog('天空乌云密布，雷声阵阵...', 'neutral');
+    addLog(tribulationEvent.text, tribulationEvent.type === 'success' ? 'positive' : 'negative');
+    
+    // 根据事件类型和成功率判断结果
+    const isSuccess = Math.random() < tribulationEvent.successRate;
+    
+    if (tribulationEvent.type === 'success' && isSuccess) {
+        // 渡劫成功
+        const effectResult = tribulationEvent.effect(gameState);
+        addLog(effectResult, 'positive');
+        actualBreakthrough();
+    } else {
+        // 渡劫失败
+        const effectResult = tribulationEvent.effect(gameState);
+        addLog(effectResult, 'negative');
+        addLog('突破失败，你需要继续修炼积累实力！', 'negative');
+    }
+    
+    updateUI();
+}
+
+// 实际的突破逻辑，在boss战胜利后调用
+function actualBreakthrough() {
+    // 突破成功（boss战胜利后直接突破）
+    gameState.realm++;
+    gameState.realmStartDay = gameState.day; // 重置境界开始天数
+    const newRealm = window.realmLevels[gameState.realm];
+    
+    // 应用突破奖励
+    gameState.maxHealth += window.realmBreakthroughBonuses.health;
+    gameState.health = gameState.maxHealth; // 突破后恢复满生命
+    gameState.attack += window.realmBreakthroughBonuses.attack;
+    gameState.defense += window.realmBreakthroughBonuses.defense;
+    gameState.maxActionPoints += window.realmBreakthroughBonuses.actionPoints;
+    gameState.actionPoints = gameState.maxActionPoints; // 突破后恢复满行动力
+    
+    // 重置修为为0
+    gameState.cultivation = 0;
+    
+    addLog(`恭喜！你成功突破到了${newRealm.name}境界！`, 'positive');
+    addLog('你感到体内灵力充盈，各项属性得到了提升！', 'positive');
+    addLog(`新的境界试炼将在${newRealm.dayLimit}天后开始。`, 'neutral');
     
     updateUI();
 }

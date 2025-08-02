@@ -98,6 +98,89 @@ const monsterSkillEffects = {
     '嗜血': {
         description: '攻击后恢复生命值',
         lifeStealRatio: 0.33
+    },
+    // 境界boss技能
+    '灵气冲击': {
+        description: '释放强大的灵气攻击',
+        damageMultiplier: 1.5
+    },
+    '防御强化': {
+        description: '大幅提升防御力',
+        defenseMultiplier: 1.5
+    },
+    '基础爆发': {
+        description: '爆发全部力量进行攻击',
+        damageMultiplier: 1.8
+    },
+    '生命汲取': {
+        description: '攻击时大量恢复生命值',
+        lifeStealRatio: 0.5
+    },
+    '金丹之力': {
+        description: '金丹释放恐怖力量',
+        damageMultiplier: 2.0
+    },
+    '元气护盾': {
+        description: '元气形成强大护盾',
+        defenseMultiplier: 2.0
+    },
+    '元婴出窍': {
+        description: '元婴攻击，无视防御',
+        ignoreDefense: true,
+        damageMultiplier: 1.5
+    },
+    '灵魂攻击': {
+        description: '直接攻击灵魂',
+        damageMultiplier: 1.7,
+        stunChance: 0.4
+    },
+    '神识碾压': {
+        description: '神识碾压敌人心智',
+        damageMultiplier: 2.2,
+        stunChance: 0.5
+    },
+    '空间撕裂': {
+        description: '撕裂空间进行攻击',
+        damageMultiplier: 2.5
+    },
+    '虚空掌控': {
+        description: '掌控虚空之力',
+        damageMultiplier: 2.8,
+        ignoreDefense: true
+    },
+    '时空禁锢': {
+        description: '禁锢敌人于时空中',
+        immobilizeDuration: 2,
+        damageMultiplier: 1.5
+    },
+    '天地合一': {
+        description: '与天地合为一体',
+        damageMultiplier: 3.0,
+        defenseMultiplier: 2.5
+    },
+    '万法归宗': {
+        description: '万法归于一宗',
+        damageMultiplier: 3.5
+    },
+    '大乘神通': {
+        description: '大乘期的无上神通',
+        damageMultiplier: 4.0,
+        ignoreDefense: true
+    },
+    '仙帝威压': {
+        description: '仙帝的恐怖威压',
+        damageMultiplier: 2.0,
+        stunChance: 0.7
+    },
+    '天劫降临': {
+        description: '召唤天劫攻击敌人',
+        damageMultiplier: 5.0,
+        ignoreDefense: true
+    },
+    '道法自然': {
+        description: '道法自然，返璞归真',
+        damageMultiplier: 4.5,
+        lifeStealRatio: 0.8
     }
 };
 
