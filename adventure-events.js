@@ -173,12 +173,12 @@ const adventureEvents = [
                 text: '同意交换',
                 successRate: 35, // 基础成功率（高风险交易）
                 goodResult: {
-                    description: '商人给了你一件宝物，大大提升了你的实力！',
+                    description: '商人给了你一件宝物，提升了你的实力！',
                     effects: {
                         cultivation: -50,
-                        attack: 8,
-                        defense: 8,
-                        mood: 20
+                        attack: Math.floor(Math.random() * 3) + 1, // 随机1-3点攻击力
+                        defense: Math.floor(Math.random() * 3) + 1, // 随机1-3点防御力
+                        mood: 15
                     }
                 },
                 badResult: {
@@ -275,7 +275,7 @@ class AdventureEventManager {
         return true;
     }
 
-    // 显示事件对话框
+    // 显示事件UI（嵌入到事件日志中）
     showEventDialog() {
         if (!this.currentEvent) return;
 
@@ -284,48 +284,127 @@ class AdventureEventManager {
         addLog(this.currentEvent.description, 'neutral');
         addLog('请选择你的行动...', 'neutral');
 
-        // 创建事件对话框
-        const eventDialog = document.createElement('div');
-        eventDialog.className = 'adventure-event-dialog';
-        eventDialog.innerHTML = `
-            <div class="adventure-event-content">
-                <h3>${this.currentEvent.title}</h3>
-                <p>${this.currentEvent.description}</p>
-                <div class="adventure-options">
-                    ${this.currentEvent.options.map((option, index) => 
-                        `<button class="adventure-option-btn" data-option="${index}">${option.text}</button>`
-                    ).join('')}
-                </div>
-            </div>
+        // 创建奇遇事件选项容器
+        const adventureOptionsDiv = document.createElement('div');
+        adventureOptionsDiv.className = 'adventure-event-options';
+        adventureOptionsDiv.style.cssText = `
+            background-color: #f0f8ff;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         `;
 
-        // 添加到页面
-        document.body.appendChild(eventDialog);
+        // 添加事件标题
+        const titleDiv = document.createElement('div');
+        titleDiv.style.cssText = `
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #2e7d32;
+            margin-bottom: 10px;
+            text-align: center;
+        `;
+        titleDiv.textContent = this.currentEvent.title;
+        adventureOptionsDiv.appendChild(titleDiv);
 
-        // 绑定选项点击事件
-        eventDialog.querySelectorAll('.adventure-option-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const optionIndex = parseInt(e.target.dataset.option);
-                this.handleOptionChoice(optionIndex);
-                this.closeEventDialog(eventDialog);
+        // 添加选项按钮
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        `;
+
+        this.currentEvent.options.forEach((option, index) => {
+            const optionBtn = document.createElement('button');
+            optionBtn.textContent = option.text;
+            optionBtn.style.cssText = `
+                padding: 10px 15px;
+                border: none;
+                border-radius: 5px;
+                background-color: #4caf50;
+                color: white;
+                cursor: pointer;
+                font-size: 14px;
+                transition: background-color 0.3s;
+            `;
+            optionBtn.addEventListener('mouseover', () => {
+                optionBtn.style.backgroundColor = '#388e3c';
             });
+            optionBtn.addEventListener('mouseout', () => {
+                optionBtn.style.backgroundColor = '#4caf50';
+            });
+            optionBtn.addEventListener('click', () => {
+                this.handleOptionChoice(index);
+                this.closeEventDialog(adventureOptionsDiv);
+            });
+            buttonsContainer.appendChild(optionBtn);
+        });
+
+        adventureOptionsDiv.appendChild(buttonsContainer);
+
+        // 添加到事件日志容器
+        const logContainer = document.getElementById('log-container');
+        logContainer.appendChild(adventureOptionsDiv);
+        logContainer.scrollTop = logContainer.scrollHeight;
+
+        // 禁用所有游戏操作按钮
+        this.disableGameControls();
+    }
+
+    // 禁用游戏控制按钮
+    disableGameControls() {
+        const buttons = [
+            'start-btn',
+            'cultivate-btn', 
+            'explore-btn',
+            'rest-btn',
+            'end-day-btn'
+        ];
+        
+        buttons.forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            }
         });
     }
 
-    // 关闭事件对话框（带动画）
-    closeEventDialog(eventDialog) {
-        const content = eventDialog.querySelector('.adventure-event-content');
+    // 启用游戏控制按钮
+    enableGameControls() {
+        const buttons = [
+            'start-btn',
+            'cultivate-btn', 
+            'explore-btn',
+            'rest-btn',
+            'end-day-btn'
+        ];
         
-        // 添加关闭动画
-        eventDialog.style.animation = 'fadeOutBackground 0.3s ease-out forwards';
-        content.style.animation = 'slideOutScale 0.3s ease-out forwards';
-        
-        // 动画结束后移除元素
-        setTimeout(() => {
-            if (eventDialog.parentNode) {
-                document.body.removeChild(eventDialog);
+        buttons.forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
             }
-        }, 300);
+        });
+        
+        // 调用游戏的updateUI函数来正确设置按钮状态
+        if (typeof updateUI === 'function') {
+            updateUI();
+        }
+    }
+
+    // 关闭事件UI
+    closeEventDialog(adventureOptionsDiv) {
+        if (adventureOptionsDiv && adventureOptionsDiv.parentNode) {
+            adventureOptionsDiv.parentNode.removeChild(adventureOptionsDiv);
+        }
+        this.currentEvent = null;
+        
+        // 重新启用游戏控制按钮
+        this.enableGameControls();
     }
 
     // 处理选项选择
