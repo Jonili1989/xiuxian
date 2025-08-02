@@ -209,6 +209,12 @@ class ReincarnationSystem {
         // 重置轮回状态
         this.isInReincarnation = false;
         
+        // 重置奇遇事件状态
+        if (window.adventureEventManager) {
+            window.adventureEventManager.currentEvent = null;
+            window.adventureEventManager.isEventActive = false;
+        }
+        
         // 设置游戏为已开始状态
         gameState.isGameStarted = true;
         
